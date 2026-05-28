@@ -8,35 +8,35 @@ export const Route = createFileRoute('/')({
 })
 
 const foodArchetypes = [
-  { code: 'A01', label: 'Grilled Red Meat' },
-  { code: 'A02', label: 'Roasted Poultry' },
-  { code: 'A03', label: 'Braised Lamb' },
-  { code: 'A04', label: 'Pan-Seared Fish' },
-  { code: 'A05', label: 'Raw Seafood & Sushi' },
-  { code: 'A06', label: 'Shellfish & Crustaceans' },
-  { code: 'A07', label: 'Creamy Pasta' },
-  { code: 'A08', label: 'Tomato-Based Dishes' },
-  { code: 'A09', label: 'Spicy Asian Cuisine' },
-  { code: 'A10', label: 'Rich Cheese Plates' },
-  { code: 'A11', label: 'Charcuterie & Cured Meats' },
-  { code: 'A12', label: 'Vegetable & Grain Bowls' },
-  { code: 'A13', label: 'Mushroom-Based Dishes' },
-  { code: 'A14', label: 'Smoked & BBQ' },
-  { code: 'A15', label: 'Light Salads & Herbs' },
-  { code: 'A16', label: 'Chocolate Desserts' },
-  { code: 'A17', label: 'Fruit-Based Desserts' },
-  { code: 'A18', label: 'Fried & Crispy Foods' },
-  { code: 'A19', label: 'Indian & Middle Eastern' },
-  { code: 'A20', label: 'Game & Wild Meats' },
+  { code: 'A01', label: 'Cru / iodado / alta frescura' },
+  { code: 'A02', label: 'Marisco delicado / peixe cozido' },
+  { code: 'A03', label: 'Peixe ou marisco grelhado' },
+  { code: 'A04', label: 'Peixe gordo / untuoso' },
+  { code: 'A05', label: 'Fritura delicada' },
+  { code: 'A06', label: 'Vegetal / ervas / verde' },
+  { code: 'A07', label: 'Cogumelos / terra / umami' },
+  { code: 'A08', label: 'Aves delicadas' },
+  { code: 'A09', label: 'Aves estruturadas' },
+  { code: 'A10', label: 'Carne vermelha delicada' },
+  { code: 'A11', label: 'Carne vermelha estruturada' },
+  { code: 'A12', label: 'Caça / intensidade animal' },
+  { code: 'A13', label: 'Fumado / carvão / tostado' },
+  { code: 'A14', label: 'Picante / especiado' },
+  { code: 'A15', label: 'Doçura moderada' },
+  { code: 'A16', label: 'Sobremesa fresca' },
+  { code: 'A17', label: 'Sobremesa intensa / chocolate' },
+  { code: 'A18', label: 'Queijo fresco / suave' },
+  { code: 'A19', label: 'Queijo curado / intenso' },
+  { code: 'A20', label: 'Fortificado / meditação' },
 ]
 
 interface WineRecommendation {
   wine_profile_code: string
-  wine_profile_name: string
-  pairing_score: number
-  region: string
-  grape: string
-  wine_style: string
+  consensus_score: number
+  votes: number
+  region: string | null
+  grape: string | null
+  sensory_style: string | null
 }
 
 function Home() {
@@ -153,29 +153,29 @@ function Home() {
                     <div className="flex items-center gap-1.5">
                       <Award className="w-4 h-4 text-amber-400" />
                       <span className="text-amber-400 font-semibold text-lg">
-                        {wine.pairing_score}
+                        {wine.consensus_score?.toFixed(2)}
                       </span>
                     </div>
                   </div>
 
                   {/* Wine Name */}
                   <h3 className="text-lg font-medium text-zinc-100 mb-4 group-hover:text-amber-300 transition-colors leading-snug">
-                    {wine.wine_profile_name}
+                    Perfil vínico {wine.wine_profile_code}
                   </h3>
 
                   {/* Details */}
                   <div className="space-y-2.5">
                     <div className="flex items-center gap-2.5 text-sm">
                       <MapPin className="w-4 h-4 text-zinc-500 shrink-0" />
-                      <span className="text-zinc-400">{wine.region}</span>
+                      <span className="text-zinc-400">{wine.region ?? 'Não definido'}</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-sm">
                       <Grape className="w-4 h-4 text-zinc-500 shrink-0" />
-                      <span className="text-zinc-400">{wine.grape}</span>
+                      <span className="text-zinc-400">{wine.grape ?? 'Não definida'}</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-sm">
                       <Palette className="w-4 h-4 text-zinc-500 shrink-0" />
-                      <span className="text-zinc-400">{wine.wine_style}</span>
+                      <span className="text-zinc-400">{wine.sensory_style ?? 'Sem descrição'}</span>
                     </div>
                   </div>
                 </div>
