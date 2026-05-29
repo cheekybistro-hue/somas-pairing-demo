@@ -186,7 +186,7 @@ await supabase
     .insert({
       session_id: sessionId,
       expert_id: expertId,
-      question_code: currentQuestion.code,
+      question_code: currentQuestion.question_code,
       question_text: currentQuestion.question_text,
       answer_text: selectedWine,
       answer_json: {
@@ -213,7 +213,7 @@ await supabase
       form_phase: 'form_1_pairing_structure',
       knowledge_target: 'pairing',
       message: JSON.stringify({
-        question_code: currentQuestion.code,
+        question_code: currentQuestion.question_code,
         wine_profile_code: selectedWine,
         reason,
         confidence,
