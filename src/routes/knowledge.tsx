@@ -109,7 +109,10 @@ async function loadQuestions() {
     if (!name.trim()) {
       setError('Indica pelo menos o nome para começarmos.')
       
-      if (stage === 'interview' && !currentQuestion) {
+    return
+    }
+    
+    if (stage === 'interview' && !currentQuestion) {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
       <div className="text-center">
@@ -120,8 +123,6 @@ async function loadQuestions() {
     </div>
   )
 }
-      return
-    }
 
     setLoading(true)
     setError(null)
