@@ -76,6 +76,54 @@ const wineProfileGroups = [
   },
 ]
 
+
+const portugueseRegions = [
+  'Vinho Verde',
+  'Trás-os-Montes',
+  'Douro',
+  'Távora-Varosa',
+  'Dão',
+  'Bairrada',
+  'Beira Interior',
+  'Lisboa',
+  'Tejo',
+  'Península de Setúbal',
+  'Alentejo',
+  'Algarve',
+  'Madeira',
+  'Açores',
+  'Outro',
+]
+
+const portugueseGrapes = [
+  'Alvarinho',
+  'Arinto',
+  'Avesso',
+  'Bical',
+  'Cercial',
+  'Encruzado',
+  'Fernão Pires / Maria Gomes',
+  'Gouveio',
+  'Loureiro',
+  'Rabigato',
+  'Síria / Roupeiro',
+  'Viosinho',
+  'Antão Vaz',
+  'Baga',
+  'Castelão',
+  'Jaen / Mencía',
+  'Moreto',
+  'Ramisco',
+  'Rufete',
+  'Tinta Roriz / Aragonez',
+  'Touriga Franca',
+  'Touriga Nacional',
+  'Trincadeira',
+  'Vinhão',
+  'Blend / lote português',
+  'Outro',
+]
+
 const descriptorGroups = [
   {
     title: 'Frescura e Acidez',
@@ -209,6 +257,18 @@ function KnowledgeInterview() {
 
   function isPairingQuestion() {
     return currentQuestion?.question_type === 'pairing_choice'
+  }
+
+  function isNationalRegionQuestion() {
+    return currentQuestion?.question_type === 'national_region'
+  }
+
+  function isNationalGrapeQuestion() {
+    return currentQuestion?.question_type === 'national_grape'
+  }
+
+  function isNationalReferenceQuestion() {
+    return currentQuestion?.question_type === 'national_reference'
   }
 
   function getNationalLabel() {
@@ -365,6 +425,20 @@ function KnowledgeInterview() {
     }, 100)
   }
 
+  function returnToModuleMenu() {
+    resetAnswerFields()
+    setQuestions([])
+    setSelectedModule(null)
+    setQuestionIndex(0)
+    setSavedCount(0)
+    setError(null)
+    setStage('module')
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100)
+  }
+
   async function saveAnswer() {
     if (!expertId || !sessionId || !currentQuestion) return
 
@@ -374,7 +448,7 @@ function KnowledgeInterview() {
     }
 
     if (!isPairingQuestion() && !nationalAnswer.trim()) {
-      setError('Preenche a resposta antes de continuar.')
+      setError('Escolhe ou preenche uma resposta antes de continuar.')
       return
     }
 
@@ -649,6 +723,15 @@ function KnowledgeInterview() {
 
         {stage === 'interview' && currentQuestion && (
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <button
+              type="button"
+              onClick={returnToModuleMenu}
+              disabled={loading}
+              className="mb-6 text-sm text-zinc-400 hover:text-amber-400 transition-colors"
+            >
+              ← Voltar aos módulos
+            </button>
+
             <div className="mb-6 flex flex-col gap-1 text-sm text-zinc-400">
               <span>{selectedModule?.module_name}</span>
               <span>Pergunta {questionIndex + 1} de {questions.length}</span>
@@ -699,15 +782,59 @@ function KnowledgeInterview() {
               </div>
             ) : (
               <div className="mb-8">
-                <Field label={getNationalLabel()} icon={<MapPin className="w-4 h-4" />}>
-                  <input
-                    key={currentQuestion.question_code}
-                    value={nationalAnswer}
-                    onChange={(e) => setNationalAnswer(e.target.value)}
-                    className="input"
-                    placeholder={getNationalPlaceholder()}
-                  />
-                </Field>
+                {isNationalRegionQuestion() && (
+                  <Field label={getNationalLabel()} icon={<MapPin className="w-4 h-4" />}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {portugueseRegions.map((regionOption) => (
+                        <button
+                          key={regionOption}
+                          type="button"
+                          onClick={() => setNationalAnswer(regionOption)}
+                          className={`text-left p-3 rounded-xl border transition-all ${
+                            nationalAnswer === regionOption
+                              ? 'border-amber-400 bg-amber-400/10'
+                              : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                          }`}
+                        >
+                          <span className="text-sm text-zinc-300">{regionOption}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                )}
+
+                {isNationalGrapeQuestion() && (
+                  <Field label={getNationalLabel()} icon={<Sparkles className="w-4 h-4" />}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {portugueseGrapes.map((grapeOption) => (
+                        <button
+                          key={grapeOption}
+                          type="button"
+                          onClick={() => setNationalAnswer(grapeOption)}
+                          className={`text-left p-3 rounded-xl border transition-all ${
+                            nationalAnswer === grapeOption
+                              ? 'border-amber-400 bg-amber-400/10'
+                              : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                          }`}
+                        >
+                          <span className="text-sm text-zinc-300">{grapeOption}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                )}
+
+                {isNationalReferenceQuestion() && (
+                  <Field label={getNationalLabel()} icon={<Wine className="w-4 h-4" />}>
+                    <input
+                      key={currentQuestion.question_code}
+                      value={nationalAnswer}
+                      onChange={(e) => setNationalAnswer(e.target.value)}
+                      className="input"
+                      placeholder={getNationalPlaceholder()}
+                    />
+                  </Field>
+                )}
               </div>
             )}
 
