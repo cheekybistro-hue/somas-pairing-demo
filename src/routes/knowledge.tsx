@@ -35,27 +35,38 @@ const experienceLevels = [
 ]
 
 const wineProfiles = [
-  { code: 'W01', label: 'Branco leve, alta acidez, mineral' },
-  { code: 'W02', label: 'Branco aromático floral' },
-  { code: 'W03', label: 'Branco cítrico com textura média' },
-  { code: 'W04', label: 'Branco estruturado sem madeira' },
-  { code: 'W05', label: 'Branco com madeira integrada' },
-  { code: 'W06', label: 'Branco de curtimenta' },
-  { code: 'W07', label: 'Espumante bruto seco' },
-  { code: 'W08', label: 'Espumante estruturado' },
-  { code: 'W09', label: 'Espumante meio seco' },
-  { code: 'W10', label: 'Rosé leve' },
-  { code: 'W11', label: 'Rosé estruturado' },
-  { code: 'W12', label: 'Tinto leve alta acidez' },
-  { code: 'W13', label: 'Tinto médio fresco' },
-  { code: 'W14', label: 'Tinto frutado' },
-  { code: 'W15', label: 'Tinto vegetal/herbal' },
-  { code: 'W16', label: 'Tinto elegante com madeira' },
-  { code: 'W17', label: 'Tinto estruturado' },
-  { code: 'W18', label: 'Tinto estruturado com madeira' },
-  { code: 'W19', label: 'Tinto potente' },
-  { code: 'W20', label: 'Tinto terroso' },
-]
+{[
+  { title: 'Brancos', profiles: wineProfiles.filter((w) => ['W01','W02','W03','W04','W05','W06'].includes(w.code)) },
+  { title: 'Espumantes', profiles: wineProfiles.filter((w) => ['W07','W08','W09'].includes(w.code)) },
+  { title: 'Rosés', profiles: wineProfiles.filter((w) => ['W10','W11'].includes(w.code)) },
+  { title: 'Tintos', profiles: wineProfiles.filter((w) => ['W12','W13','W14','W15','W16','W17','W18','W19','W20'].includes(w.code)) },
+].map((group) => (
+  <div key={group.title} className="mb-8">
+    <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
+      {group.title}
+    </h3>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {group.profiles.map((wine) => (
+        <button
+          key={wine.code}
+          onClick={() => setSelectedWine(wine.code)}
+          className={`text-left p-4 rounded-xl border transition-all ${
+            selectedWine === wine.code
+              ? 'border-amber-400 bg-amber-400/10'
+              : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+          }`}
+        >
+          <div className="flex gap-2 items-center mb-1">
+            <Wine className="w-4 h-4 text-amber-400" />
+            <span className="font-mono text-amber-400">{wine.code}</span>
+          </div>
+          <div className="text-sm text-zinc-300">{wine.label}</div>
+        </button>
+      ))}
+    </div>
+  </div>
+))}
 
 function KnowledgeInterview() {
   const [stage, setStage] = useState<'profile' | 'interview' | 'done'>('profile')
@@ -262,7 +273,12 @@ await supabase
     }
 
     setQuestionIndex(questionIndex + 1)
-  }
+  setTimeout(() => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}, 100)}
 
   setLoading(false)
 }
