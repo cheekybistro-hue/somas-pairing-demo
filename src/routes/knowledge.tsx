@@ -174,10 +174,10 @@ async function loadQuestions() {
       session_id: sessionId,
       expert_id: expertId,
       question_code: currentQuestion.code,
-      question_text: currentQuestion.text,
+      question_text: currentQuestion.question_text,
       answer_text: selectedWine,
       answer_json: {
-        food_archetype_code: currentQuestion.archetype,
+        food_archetype_code: currentQuestion.food_archetype_code,
         wine_profile_code: selectedWine,
         reason,
         confidence,
@@ -324,10 +324,10 @@ async function loadQuestions() {
               Pergunta {questionIndex + 1} de {questions.length}
             </div>
 
-            <div className="text-amber-400 font-mono mb-2">{currentQuestion.archetype}</div>
+            <div className="text-amber-400 font-mono mb-2">{currentQuestion.food_archetype_code}</div>
 
-            <h2 className="text-3xl font-light mb-3">{currentQuestion.title}</h2>
-            <p className="text-zinc-400 text-lg mb-8">{currentQuestion.text}</p>
+            <h2 className="text-3xl font-light mb-3">{currentQuestion.helper_text}</h2>
+            <p className="text-zinc-400 text-lg mb-8">{currentQuestion.question_text}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
               {wineProfiles.map((wine) => (
