@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   Brain,
@@ -57,27 +57,6 @@ const wineProfiles = [
   { code: 'W20', label: 'Tinto terroso' },
 ]
 
-const questions = [
-  {
-    code: 'A01_PAIRING',
-    archetype: 'A01',
-    title: 'Cru / iodado / alta frescura',
-    text: 'Para pratos como ostras, sashimi ou ceviche, qual destes perfis vínicos escolheria?',
-  },
-  {
-    code: 'A03_PAIRING',
-    archetype: 'A03',
-    title: 'Peixe ou marisco grelhado',
-    text: 'Para peixe ou marisco grelhado, qual destes perfis vínicos considera mais adequado?',
-  },
-  {
-    code: 'A07_PAIRING',
-    archetype: 'A07',
-    title: 'Cogumelos / terra / umami',
-    text: 'Para pratos terrosos, cogumelos ou muito umami, que perfil escolheria?',
-  },
-]
-
 function KnowledgeInterview() {
   const [stage, setStage] = useState<'profile' | 'interview' | 'done'>('profile')
 
@@ -96,6 +75,7 @@ function KnowledgeInterview() {
   const [sessionId, setSessionId] = useState<string | null>(null)
 
   const [questionIndex, setQuestionIndex] = useState(0)
+  const [questions, setQuestions] = useState<any[]>([])
   const [selectedWine, setSelectedWine] = useState('')
   const [reason, setReason] = useState('')
   const [confidence, setConfidence] = useState(1)
@@ -104,11 +84,42 @@ function KnowledgeInterview() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const currentQuestion = questions[questionIndex]
+ const currentQuestion =
+  questions.length > 0 ? questions[questionIndex] : null
 
+  useEffect(() => {
+  loadQuestions()
+}, [])
+
+async function loadQuestions() {
+  const { data, error } = await supabase
+    .from('knowledge_questions')
+    .select('*')
+    .eq('active', true)
+    .order('priority')
+
+  if (error) {
+    console.error(error)
+    return
+  }
+
+  setQuestions(data ?? [])
+}
   async function startSession() {
     if (!name.trim()) {
       setError('Indica pelo menos o nome para começarmos.')
+      
+      if (stage === 'interview' && !currentQuestion) {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-zinc-400">
+          A carregar perguntas...
+        </p>
+      </div>
+    </div>
+  )
+}
       return
     }
 
