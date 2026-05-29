@@ -1,7 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Brain, User, Briefcase, MapPin, Sparkles, ArrowRight, CheckCircle } from 'lucide-react'
+import {
+  Brain,
+  User,
+  Briefcase,
+  MapPin,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+  Wine,
+} from 'lucide-react'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -25,7 +34,53 @@ const experienceLevels = [
   '+15 anos',
 ]
 
+const wineProfiles = [
+  { code: 'W01', label: 'Branco leve, alta acidez, mineral' },
+  { code: 'W02', label: 'Branco aromático floral' },
+  { code: 'W03', label: 'Branco cítrico com textura média' },
+  { code: 'W04', label: 'Branco estruturado sem madeira' },
+  { code: 'W05', label: 'Branco com madeira integrada' },
+  { code: 'W06', label: 'Branco de curtimenta' },
+  { code: 'W07', label: 'Espumante bruto seco' },
+  { code: 'W08', label: 'Espumante estruturado' },
+  { code: 'W09', label: 'Espumante meio seco' },
+  { code: 'W10', label: 'Rosé leve' },
+  { code: 'W11', label: 'Rosé estruturado' },
+  { code: 'W12', label: 'Tinto leve alta acidez' },
+  { code: 'W13', label: 'Tinto médio fresco' },
+  { code: 'W14', label: 'Tinto frutado' },
+  { code: 'W15', label: 'Tinto vegetal/herbal' },
+  { code: 'W16', label: 'Tinto elegante com madeira' },
+  { code: 'W17', label: 'Tinto estruturado' },
+  { code: 'W18', label: 'Tinto estruturado com madeira' },
+  { code: 'W19', label: 'Tinto potente' },
+  { code: 'W20', label: 'Tinto terroso' },
+]
+
+const questions = [
+  {
+    code: 'A01_PAIRING',
+    archetype: 'A01',
+    title: 'Cru / iodado / alta frescura',
+    text: 'Para pratos como ostras, sashimi ou ceviche, qual destes perfis vínicos escolheria?',
+  },
+  {
+    code: 'A03_PAIRING',
+    archetype: 'A03',
+    title: 'Peixe ou marisco grelhado',
+    text: 'Para peixe ou marisco grelhado, qual destes perfis vínicos considera mais adequado?',
+  },
+  {
+    code: 'A07_PAIRING',
+    archetype: 'A07',
+    title: 'Cogumelos / terra / umami',
+    text: 'Para pratos terrosos, cogumelos ou muito umami, que perfil escolheria?',
+  },
+]
+
 function KnowledgeInterview() {
+  const [stage, setStage] = useState<'profile' | 'interview' | 'done'>('profile')
+
   const [name, setName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -37,11 +92,19 @@ function KnowledgeInterview() {
   const [specialties, setSpecialties] = useState('')
   const [bio, setBio] = useState('')
 
-  const [loading, setLoading] = useState(false)
-  const [created, setCreated] = useState(false)
   const [expertId, setExpertId] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
+
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [selectedWine, setSelectedWine] = useState('')
+  const [reason, setReason] = useState('')
+  const [confidence, setConfidence] = useState(1)
+  const [savedCount, setSavedCount] = useState(0)
+
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const currentQuestion = questions[questionIndex]
 
   async function startSession() {
     if (!name.trim()) {
@@ -92,154 +155,152 @@ function KnowledgeInterview() {
 
     setExpertId(expert.id)
     setSessionId(session.id)
-    setCreated(true)
+    setStage('interview')
+    setLoading(false)
+  }
+
+  async function saveAnswer() {
+    if (!expertId || !sessionId) return
+
+    if (!selectedWine) {
+      setError('Seleciona um perfil vínico.')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    const { error: insertError } = await supabase.from('knowledge_answers').insert({
+      session_id: sessionId,
+      expert_id: expertId,
+      question_code: currentQuestion.code,
+      question_text: currentQuestion.text,
+      answer_text: selectedWine,
+      answer_json: {
+        food_archetype_code: currentQuestion.archetype,
+        wine_profile_code: selectedWine,
+        reason,
+        confidence,
+      },
+      confidence,
+    })
+
+    if (insertError) {
+      setError(insertError.message)
+      setLoading(false)
+      return
+    }
+
+    const newCount = savedCount + 1
+
+    await supabase
+      .from('knowledge_sessions')
+      .update({
+        questions_answered: newCount,
+        knowledge_points_generated: newCount,
+      })
+      .eq('id', sessionId)
+
+    setSavedCount(newCount)
+    setSelectedWine('')
+    setReason('')
+    setConfidence(1)
+
+    if (questionIndex + 1 >= questions.length) {
+      await supabase
+        .from('knowledge_sessions')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId)
+
+      setStage('done')
+    } else {
+      setQuestionIndex(questionIndex + 1)
+    }
+
     setLoading(false)
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Brain className="w-10 h-10 text-amber-400" />
-            <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-zinc-50">
+            <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
               SomAS <span className="font-semibold text-amber-400">Knowledge Interview</span>
             </h1>
           </div>
-
-          <p className="text-zinc-400 text-lg font-light max-w-3xl mx-auto">
-            Ajuda-nos a construir um motor de decisão único, alimentado por conhecimento humano especializado.
+          <p className="text-zinc-400 text-lg">
+            Cada resposta ajuda a construir o motor de decisão SomAS.
           </p>
         </div>
 
-        {!created && (
-          <div className="bg-zinc-800/50 backdrop-blur-sm border border-zinc-700/50 rounded-2xl p-6 sm:p-8 shadow-2xl max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-2xl font-light text-zinc-100 mb-2">
-                Antes de começarmos
-              </h2>
-              <p className="text-zinc-400">
-                Estes dados ajudam o SomAS a compreender a origem do conhecimento: chef, sommelier, enólogo,
-                gastrónomo ou outro profissional. No futuro, isto permitirá consultar recomendações por perfil ou persona.
-              </p>
-            </div>
+        {stage === 'profile' && (
+          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-light mb-2">Antes de começarmos</h2>
+            <p className="text-zinc-400 mb-8">
+              Estes dados ajudam a criar a persona de conhecimento do especialista.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Field label="Nome *" icon={<User className="w-4 h-4" />}>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Osvaldo Amado"
-                  className="input"
-                />
+                <input value={name} onChange={(e) => setName(e.target.value)} className="input" />
               </Field>
 
-              <Field label="Nome público / assinatura" icon={<Sparkles className="w-4 h-4" />}>
-                <input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Ex: Eng.º Osvaldo Amado"
-                  className="input"
-                />
+              <Field label="Nome público" icon={<Sparkles className="w-4 h-4" />}>
+                <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="input" />
               </Field>
 
               <Field label="Email" icon={<User className="w-4 h-4" />}>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Opcional"
-                  className="input"
-                />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} className="input" />
               </Field>
 
               <Field label="Função" icon={<Briefcase className="w-4 h-4" />}>
                 <select value={role} onChange={(e) => setRole(e.target.value)} className="input">
-                  <option value="">Selecionar função…</option>
-                  {roles.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
+                  <option value="">Selecionar…</option>
+                  {roles.map((r) => <option key={r}>{r}</option>)}
                 </select>
               </Field>
 
-              <Field label="Organização / contexto" icon={<Briefcase className="w-4 h-4" />}>
-                <input
-                  value={organization}
-                  onChange={(e) => setOrganization(e.target.value)}
-                  placeholder="Restaurante, produtor, consultoria…"
-                  className="input"
-                />
+              <Field label="Organização" icon={<Briefcase className="w-4 h-4" />}>
+                <input value={organization} onChange={(e) => setOrganization(e.target.value)} className="input" />
               </Field>
 
               <Field label="Experiência" icon={<Sparkles className="w-4 h-4" />}>
-                <select
-                  value={yearsExperience}
-                  onChange={(e) => setYearsExperience(e.target.value)}
-                  className="input"
-                >
-                  <option value="">Selecionar experiência…</option>
-                  {experienceLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
+                <select value={yearsExperience} onChange={(e) => setYearsExperience(e.target.value)} className="input">
+                  <option value="">Selecionar…</option>
+                  {experienceLevels.map((e) => <option key={e}>{e}</option>)}
                 </select>
               </Field>
 
               <Field label="País" icon={<MapPin className="w-4 h-4" />}>
-                <input
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="input"
-                />
+                <input value={country} onChange={(e) => setCountry(e.target.value)} className="input" />
               </Field>
 
               <Field label="Região" icon={<MapPin className="w-4 h-4" />}>
-                <input
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  placeholder="Ex: Dão, Bairrada, Lisboa…"
-                  className="input"
-                />
+                <input value={region} onChange={(e) => setRegion(e.target.value)} className="input" />
               </Field>
             </div>
 
             <div className="mt-5">
               <Field label="Especialidades" icon={<Sparkles className="w-4 h-4" />}>
-                <textarea
-                  value={specialties}
-                  onChange={(e) => setSpecialties(e.target.value)}
-                  placeholder="Ex: vinhos brancos, cozinha portuguesa, pairing, espumantes, fortificados…"
-                  className="input min-h-[90px]"
-                />
+                <textarea value={specialties} onChange={(e) => setSpecialties(e.target.value)} className="input min-h-[90px]" />
               </Field>
             </div>
 
             <div className="mt-5">
               <Field label="Nota biográfica curta" icon={<User className="w-4 h-4" />}>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Opcional. Uma frase sobre o teu percurso ou área de conhecimento."
-                  className="input min-h-[90px]"
-                />
+                <textarea value={bio} onChange={(e) => setBio(e.target.value)} className="input min-h-[90px]" />
               </Field>
             </div>
 
-            {error && (
-              <div className="mt-6 bg-red-950/40 border border-red-800/50 rounded-xl p-4 text-red-300 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <ErrorBox message={error} />}
 
             <div className="mt-8 flex justify-end">
-              <button
-                onClick={startSession}
-                disabled={loading}
-                className="bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 font-semibold px-8 py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed shadow-lg shadow-amber-500/20"
-              >
+              <button onClick={startSession} disabled={loading} className="btn-primary">
                 {loading ? 'A iniciar…' : 'Iniciar entrevista'}
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -247,37 +308,80 @@ function KnowledgeInterview() {
           </div>
         )}
 
-        {created && (
-          <div className="bg-zinc-800/50 backdrop-blur-sm border border-amber-400/30 rounded-2xl p-8 shadow-2xl max-w-3xl mx-auto text-center">
+        {stage === 'interview' && (
+          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <div className="mb-6 text-sm text-zinc-400">
+              Pergunta {questionIndex + 1} de {questions.length}
+            </div>
+
+            <div className="text-amber-400 font-mono mb-2">{currentQuestion.archetype}</div>
+
+            <h2 className="text-3xl font-light mb-3">{currentQuestion.title}</h2>
+            <p className="text-zinc-400 text-lg mb-8">{currentQuestion.text}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+              {wineProfiles.map((wine) => (
+                <button
+                  key={wine.code}
+                  onClick={() => setSelectedWine(wine.code)}
+                  className={`text-left p-4 rounded-xl border transition-all ${
+                    selectedWine === wine.code
+                      ? 'border-amber-400 bg-amber-400/10'
+                      : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                  }`}
+                >
+                  <div className="flex gap-2 items-center mb-1">
+                    <Wine className="w-4 h-4 text-amber-400" />
+                    <span className="font-mono text-amber-400">{wine.code}</span>
+                  </div>
+                  <div className="text-sm text-zinc-300">{wine.label}</div>
+                </button>
+              ))}
+            </div>
+
+            <Field label="Porque escolheu este perfil?" icon={<Brain className="w-4 h-4" />}>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="input min-h-[100px]"
+                placeholder="Ex: acidez, frescura, mineralidade, contraste com gordura..."
+              />
+            </Field>
+
+            <div className="mt-6">
+              <label className="block text-sm text-zinc-300 mb-2">
+                Confiança: {confidence}
+              </label>
+              <input
+                type="range"
+                min="0.25"
+                max="1"
+                step="0.25"
+                value={confidence}
+                onChange={(e) => setConfidence(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            {error && <ErrorBox message={error} />}
+
+            <div className="mt-8 flex justify-between items-center">
+              <span className="text-zinc-500 text-sm">{savedCount} resposta(s) guardada(s)</span>
+              <button onClick={saveAnswer} disabled={loading} className="btn-primary">
+                {loading ? 'A guardar…' : 'Guardar e continuar'}
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {stage === 'done' && (
+          <div className="bg-zinc-800/50 border border-amber-400/30 rounded-2xl p-8 max-w-3xl mx-auto text-center">
             <CheckCircle className="w-14 h-14 text-amber-400 mx-auto mb-4" />
-
-            <h2 className="text-2xl font-light text-zinc-100 mb-3">
-              Sessão iniciada com sucesso
-            </h2>
-
-            <p className="text-zinc-400 mb-6">
-              O perfil foi guardado e a sessão de conhecimento foi criada. No próximo passo vamos apresentar perguntas
-              curtas, adaptativas e com impacto visível no motor SomAS.
+            <h2 className="text-2xl font-light mb-3">Entrevista concluída</h2>
+            <p className="text-zinc-400">
+              Obrigado. As respostas foram guardadas e já fazem parte da camada de conhecimento SomAS.
             </p>
-
-            <div className="bg-zinc-900/60 rounded-xl p-4 text-left text-sm text-zinc-400 space-y-2">
-              <p>
-                <span className="text-zinc-500">Expert ID:</span> {expertId}
-              </p>
-              <p>
-                <span className="text-zinc-500">Session ID:</span> {sessionId}
-              </p>
-            </div>
-
-            <div className="mt-8 text-left bg-zinc-900/50 border border-zinc-700/50 rounded-xl p-5">
-              <h3 className="text-amber-400 font-medium mb-2">
-                Próxima fase
-              </h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Vamos criar o motor de perguntas: o SomAS irá escolher arquétipos e perfis com menor cobertura,
-                fazer perguntas simples e guardar cada resposta como conhecimento validável.
-              </p>
-            </div>
           </div>
         )}
       </div>
@@ -285,15 +389,7 @@ function KnowledgeInterview() {
   )
 }
 
-function Field({
-  label,
-  icon,
-  children,
-}: {
-  label: string
-  icon: React.ReactNode
-  children: React.ReactNode
-}) {
+function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <label className="block">
       <div className="flex items-center gap-2 text-sm font-medium text-zinc-300 mb-2 uppercase tracking-widest">
@@ -302,5 +398,13 @@ function Field({
       </div>
       {children}
     </label>
+  )
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div className="mt-6 bg-red-950/40 border border-red-800/50 rounded-xl p-4 text-red-300 text-sm">
+      {message}
+    </div>
   )
 }
