@@ -76,6 +76,32 @@ const wineProfileGroups = [
   },
 ]
 
+const wineDescriptors = [
+  { code: 'A', label: 'Alta acidez' },
+  { code: 'B', label: 'Perfil mineral' },
+  { code: 'C', label: 'Perfil salino / atlântico' },
+  { code: 'D', label: 'Fruta fresca' },
+  { code: 'E', label: 'Fruta madura' },
+  { code: 'F', label: 'Estrutura média' },
+  { code: 'G', label: 'Estrutura elevada' },
+  { code: 'H', label: 'Tanino firme' },
+  { code: 'I', label: 'Tanino macio' },
+  { code: 'J', label: 'Perfil floral' },
+  { code: 'K', label: 'Perfil herbal / vegetal' },
+  { code: 'L', label: 'Perfil especiado' },
+  { code: 'M', label: 'Perfil tostado / madeira' },
+  { code: 'N', label: 'Perfil fumado' },
+  { code: 'O', label: 'Perfil oxidativo' },
+  { code: 'P', label: 'Perfil doce' },
+  { code: 'Q', label: 'Alta frescura' },
+  { code: 'R', label: 'Grande longevidade' },
+  { code: 'S', label: 'Contacto com borras / batonnage' },
+  { code: 'T', label: 'Perfil elegante / delicado / baixa extração' },
+  { code: 'U', label: 'Colheita tardia' },
+  { code: 'V', label: 'Fortificado' },
+  { code: 'W', label: 'Outro' },
+]
+
 function KnowledgeInterview() {
   const [stage, setStage] = useState<'profile' | 'interview' | 'done'>('profile')
 
@@ -97,6 +123,7 @@ function KnowledgeInterview() {
   const [questions, setQuestions] = useState<any[]>([])
   const [selectedWine, setSelectedWine] = useState('')
   const [reason, setReason] = useState('')
+  const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>([])
   const [confidence, setConfidence] = useState(1)
   const [savedCount, setSavedCount] = useState(0)
 
@@ -211,6 +238,7 @@ await supabase
       answer_json: {
         food_archetype_code: currentQuestion.food_archetype_code,
         wine_profile_code: selectedWine,
+        descriptors: selectedDescriptors,
         reason,
         confidence,
       },
@@ -234,6 +262,7 @@ await supabase
       message: JSON.stringify({
         question_code: currentQuestion.question_code,
         wine_profile_code: selectedWine,
+        descriptors: selectedDescriptors,
         reason,
         confidence,
       }),
@@ -251,7 +280,7 @@ await supabase
 
   setSavedCount(newCount)
   setSelectedWine('')
-  setReason('')
+  setSelectedDescriptors([])
   setConfidence(1)
 
   if (questionIndex + 1 >= questions.length) {
@@ -433,14 +462,46 @@ await supabase
   })}
 </div>
 
-            <Field label="Porque escolheu este perfil?" icon={<Brain className="w-4 h-4" />}>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="input min-h-[100px]"
-                placeholder="Ex: acidez, frescura, mineralidade, contraste com gordura..."
-              />
-            </Field>
+<Field label="Que atributos justificam esta escolha?" icon={<Brain className="w-4 h-4" />}>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    {wineDescriptors.map((descriptor) => {
+      const selected = selectedDescriptors.includes(descriptor.code)
+
+      return (
+        <button
+          key={descriptor.code}
+          type="button"
+          onClick={() => {
+            setSelectedDescriptors((current) =>
+              selected
+                ? current.filter((code) => code !== descriptor.code)
+                : [...current, descriptor.code]
+            )
+          }}
+          className={`text-left p-3 rounded-xl border transition-all ${
+            selected
+              ? 'border-amber-400 bg-amber-400/10'
+              : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+          }`}
+        >
+          <span className="font-mono text-amber-400 mr-2">{descriptor.code}</span>
+          <span className="text-sm text-zinc-300">{descriptor.label}</span>
+        </button>
+      )
+    })}
+  </div>
+</Field>
+
+<div className="mt-6">
+  <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
+    <textarea
+      value={reason}
+      onChange={(e) => setReason(e.target.value)}
+      className="input min-h-[100px]"
+      placeholder="Ex: explique em palavras suas, se quiser..."
+    />
+  </Field>
+</div>
 
             <div className="mt-6">
               <label className="block text-sm text-zinc-300 mb-2">
