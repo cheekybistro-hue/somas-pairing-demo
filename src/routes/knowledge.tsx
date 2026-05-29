@@ -155,6 +155,17 @@ async function loadQuestions() {
 
     setExpertId(expert.id)
     setSessionId(session.id)
+await supabase
+  .from('interview_messages')
+  .insert({
+    session_id: session.id,
+    expert_id: expert.id,
+    role: 'assistant',
+    form_phase: 'form_1_pairing_structure',
+    knowledge_target: 'pairing',
+    message:
+      'Bem-vindo ao SomAS Knowledge Interview. Vamos começar a construir conhecimento sobre harmonização entre arquétipos gastronómicos e perfis vínicos.',
+  })    
     setStage('interview')
     setLoading(false)
   }
@@ -184,7 +195,21 @@ async function loadQuestions() {
       },
       confidence,
     })
-
+await supabase
+  .from('interview_messages')
+  .insert({
+    session_id: sessionId,
+    expert_id: expertId,
+    role: 'expert',
+    form_phase: 'form_1_pairing_structure',
+    knowledge_target: 'pairing',
+    message: JSON.stringify({
+      question_code: currentQuestion.code,
+      wine_profile_code: selectedWine,
+      reason,
+      confidence,
+    }),
+  })
     if (insertError) {
       setError(insertError.message)
       setLoading(false)
@@ -216,6 +241,22 @@ async function loadQuestions() {
         .eq('id', sessionId)
 
       setStage('done')
+
+      const nextQuestion = questions[questionIndex + 1]
+
+if (nextQuestion) {
+  await supabase
+    .from('interview_messages')
+    .insert({
+      session_id: sessionId,
+      expert_id: expertId,
+      role: 'assistant',
+      form_phase: 'form_1_pairing_structure',
+      knowledge_target: 'pairing',
+      message: nextQuestion.question_text,
+    })
+}
+      
     } else {
       setQuestionIndex(questionIndex + 1)
     }
