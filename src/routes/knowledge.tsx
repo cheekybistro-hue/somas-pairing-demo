@@ -147,6 +147,7 @@ function KnowledgeInterview() {
   const [questionIndex, setQuestionIndex] = useState(0)
   const [questions, setQuestions] = useState<any[]>([])
   const [selectedWine, setSelectedWine] = useState('')
+  const [nationalAnswer, setNationalAnswer] = useState('')
   const [reason, setReason] = useState('')
   const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>([])
   const [confidence, setConfidence] = useState(1)
@@ -155,34 +156,82 @@ function KnowledgeInterview() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
- const currentQuestion =
-  questions.length > 0 ? questions[questionIndex] : null
+  const currentQuestion =
+    questions.length > 0 ? questions[questionIndex] : null
 
   useEffect(() => {
-  loadQuestions()
-}, [])
+    loadQuestions()
+  }, [])
 
-async function loadQuestions() {
-  const { data, error } = await supabase
-    .from('knowledge_questions')
-    .select('*')
-    .eq('active', true)
-    .order('priority')
+  async function loadQuestions() {
+    const { data, error } = await supabase
+      .from('knowledge_questions')
+      .select('*')
+      .eq('active', true)
+      .order('priority')
 
-  if (error) {
-    console.error(error)
-    return
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    setQuestions(data ?? [])
   }
 
-  setQuestions(data ?? [])
-}
+  function resetAnswerFields() {
+    setSelectedWine('')
+    setNationalAnswer('')
+    setSelectedDescriptors([])
+    setReason('')
+    setConfidence(1)
+  }
+
+  function isPairingQuestion() {
+    return currentQuestion?.question_type === 'pairing_choice'
+  }
+
+  function getNationalLabel() {
+    if (!currentQuestion) return 'Resposta'
+
+    if (currentQuestion.question_type === 'national_region') {
+      return 'Região portuguesa'
+    }
+
+    if (currentQuestion.question_type === 'national_grape') {
+      return 'Casta portuguesa'
+    }
+
+    if (currentQuestion.question_type === 'national_reference') {
+      return 'Produtor, rótulo ou vinho de referência'
+    }
+
+    return 'Resposta'
+  }
+
+  function getNationalPlaceholder() {
+    if (!currentQuestion) return ''
+
+    if (currentQuestion.question_type === 'national_region') {
+      return 'Ex: Dão, Bairrada, Douro, Vinho Verde, Lisboa...'
+    }
+
+    if (currentQuestion.question_type === 'national_grape') {
+      return 'Ex: Encruzado, Alvarinho, Arinto, Baga, Touriga Nacional...'
+    }
+
+    if (currentQuestion.question_type === 'national_reference') {
+      return 'Ex: produtor, rótulo, vinho ou ano se relevante...'
+    }
+
+    return ''
+  }
+
   async function startSession() {
     if (!name.trim()) {
       setError('Indica pelo menos o nome para começarmos.')
-      
-    return
+      return
     }
-    
+
     setLoading(true)
     setError(null)
 
@@ -226,136 +275,158 @@ async function loadQuestions() {
 
     setExpertId(expert.id)
     setSessionId(session.id)
-await supabase
-  .from('interview_messages')
-  .insert({
-    session_id: session.id,
-    expert_id: expert.id,
-    role: 'assistant',
-    form_phase: 'form_1_pairing_structure',
-    knowledge_target: 'pairing',
-    message:
-      'Bem-vindo ao SomAS Knowledge Interview. Vamos começar a construir conhecimento sobre harmonização entre arquétipos gastronómicos e perfis vínicos.',
-  })    
+
+    await supabase
+      .from('interview_messages')
+      .insert({
+        session_id: session.id,
+        expert_id: expert.id,
+        role: 'assistant',
+        form_phase: currentQuestion?.form_phase ?? 'form_1_pairing_structure',
+        knowledge_target: currentQuestion?.question_type ?? 'pairing_choice',
+        message:
+          'Bem-vindo ao SomAS Knowledge Interview. Vamos começar a construir conhecimento especializado para o motor de decisão.',
+      })
+
     setStage('interview')
     setLoading(false)
   }
 
- async function saveAnswer() {
-  if (!expertId || !sessionId || !currentQuestion) return
+  async function saveAnswer() {
+    if (!expertId || !sessionId || !currentQuestion) return
 
-  if (!selectedWine) {
-    setError('Seleciona um perfil vínico.')
-    return
-  }
+    if (isPairingQuestion() && !selectedWine) {
+      setError('Seleciona um perfil vínico.')
+      return
+    }
 
-  setLoading(true)
-  setError(null)
+    if (!isPairingQuestion() && !nationalAnswer.trim()) {
+      setError('Preenche a resposta antes de continuar.')
+      return
+    }
 
-  const { error: insertError } = await supabase
-    .from('knowledge_answers')
-    .insert({
-      session_id: sessionId,
-      expert_id: expertId,
-      question_code: currentQuestion.question_code,
-      question_text: currentQuestion.question_text,
-      answer_text: selectedWine,
-      answer_json: {
-        food_archetype_code: currentQuestion.food_archetype_code,
-        wine_profile_code: selectedWine,
-        descriptors: selectedDescriptors,
-        reason,
-        confidence,
-      },
-      confidence,
-    })
+    setLoading(true)
+    setError(null)
 
-  if (insertError) {
-    setError(insertError.message)
-    setLoading(false)
-    return
-  }
+    const answerText = isPairingQuestion()
+      ? selectedWine
+      : nationalAnswer.trim()
 
-  await supabase
-    .from('interview_messages')
-    .insert({
-      session_id: sessionId,
-      expert_id: expertId,
-      role: 'expert',
-      form_phase: 'form_1_pairing_structure',
-      knowledge_target: 'pairing',
-      message: JSON.stringify({
+    const answerJson = isPairingQuestion()
+      ? {
+          question_type: currentQuestion.question_type,
+          food_archetype_code: currentQuestion.food_archetype_code,
+          wine_profile_code: selectedWine,
+          descriptors: selectedDescriptors,
+          reason,
+          confidence,
+        }
+      : {
+          question_type: currentQuestion.question_type,
+          wine_profile_code: currentQuestion.wine_profile_code,
+          value: nationalAnswer.trim(),
+          descriptors: selectedDescriptors,
+          reason,
+          confidence,
+        }
+
+    const { error: insertError } = await supabase
+      .from('knowledge_answers')
+      .insert({
+        session_id: sessionId,
+        expert_id: expertId,
         question_code: currentQuestion.question_code,
-        wine_profile_code: selectedWine,
-        descriptors: selectedDescriptors,
-        reason,
+        question_text: currentQuestion.question_text,
+        answer_text: answerText,
+        answer_json: answerJson,
         confidence,
-      }),
-    })
+      })
 
-  const newCount = savedCount + 1
+    if (insertError) {
+      setError(insertError.message)
+      setLoading(false)
+      return
+    }
 
-  await supabase
-    .from('knowledge_sessions')
-    .update({
-      questions_answered: newCount,
-      knowledge_points_generated: newCount,
-    })
-    .eq('id', sessionId)
+    await supabase
+      .from('interview_messages')
+      .insert({
+        session_id: sessionId,
+        expert_id: expertId,
+        role: 'expert',
+        form_phase: currentQuestion.form_phase,
+        knowledge_target: currentQuestion.question_type,
+        message: JSON.stringify({
+          question_code: currentQuestion.question_code,
+          answer_text: answerText,
+          answer_json: answerJson,
+        }),
+      })
 
-  setSavedCount(newCount)
+    const newCount = savedCount + 1
 
-  if (questionIndex + 1 >= questions.length) {
     await supabase
       .from('knowledge_sessions')
       .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
+        questions_answered: newCount,
+        knowledge_points_generated: newCount,
       })
       .eq('id', sessionId)
 
-    setStage('done')
-  } else {
-    const nextQuestion = questions[questionIndex + 1]
+    setSavedCount(newCount)
 
-    if (nextQuestion) {
+    if (questionIndex + 1 >= questions.length) {
       await supabase
-        .from('interview_messages')
-        .insert({
-          session_id: sessionId,
-          expert_id: expertId,
-          role: 'assistant',
-          form_phase: 'form_1_pairing_structure',
-          knowledge_target: 'pairing',
-          message: nextQuestion.question_text,
+        .from('knowledge_sessions')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
         })
+        .eq('id', sessionId)
+
+      setStage('done')
+    } else {
+      const nextQuestion = questions[questionIndex + 1]
+
+      if (nextQuestion) {
+        await supabase
+          .from('interview_messages')
+          .insert({
+            session_id: sessionId,
+            expert_id: expertId,
+            role: 'assistant',
+            form_phase: nextQuestion.form_phase,
+            knowledge_target: nextQuestion.question_type,
+            message: nextQuestion.question_text,
+          })
+      }
+
+      setQuestionIndex(questionIndex + 1)
+      resetAnswerFields()
+
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        })
+      }, 100)
     }
 
-    setQuestionIndex(questionIndex + 1)
-    setSelectedWine('')
-  setSelectedDescriptors([])
-  setReason('')
-  setConfidence(1)
-  setTimeout(() => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  })
-}, 100)}
+    setLoading(false)
+  }
 
-  setLoading(false)
-}
   if (stage === 'interview' && !currentQuestion) {
-  return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-      <div className="text-center">
-        <p className="text-zinc-400">
-          A carregar perguntas...
-        </p>
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-zinc-400">
+            A carregar perguntas...
+          </p>
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -441,108 +512,124 @@ await supabase
           </div>
         )}
 
-        {stage === 'interview' && (
+        {stage === 'interview' && currentQuestion && (
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
             <div className="mb-6 text-sm text-zinc-400">
               Pergunta {questionIndex + 1} de {questions.length}
             </div>
 
-            <div className="text-amber-400 font-mono mb-2">{currentQuestion.food_archetype_code}</div>
+            <div className="text-amber-400 font-mono mb-2">
+              {currentQuestion.food_archetype_code || currentQuestion.wine_profile_code}
+            </div>
 
             <h2 className="text-3xl font-light mb-3">{currentQuestion.helper_text}</h2>
             <p className="text-zinc-400 text-lg mb-8">{currentQuestion.question_text}</p>
 
-<div className="mb-8">
-  {wineProfileGroups.map((group) => {
-    const profiles = wineProfiles.filter((wine) =>
-      group.codes.includes(wine.code)
-    )
-
-    return (
-      <div key={group.title} className="mb-8">
-        <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
-          {group.title}
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {profiles.map((wine) => (
-            <button
-              key={wine.code}
-              onClick={() => setSelectedWine(wine.code)}
-              className={`text-left p-4 rounded-xl border transition-all ${
-                selectedWine === wine.code
-                  ? 'border-amber-400 bg-amber-400/10'
-                  : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
-              }`}
-            >
-              <div className="flex gap-2 items-center mb-1">
-                <Wine className="w-4 h-4 text-amber-400" />
-                <span className="font-mono text-amber-400">{wine.code}</span>
-              </div>
-              <div className="text-sm text-zinc-300">{wine.label}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  })}
-</div>
-
-<Field label="Que atributos justificam esta escolha?" icon={<Brain className="w-4 h-4" />}>
-  <div className="space-y-6">
-    {descriptorGroups.map((group) => (
-      <div key={group.title}>
-        <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
-          {group.title}
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {group.items.map((descriptor) => {
-            const selected = selectedDescriptors.includes(descriptor.code)
-
-            return (
-              <button
-                key={descriptor.code}
-                type="button"
-                onClick={() => {
-                  setSelectedDescriptors((current) =>
-                    selected
-                      ? current.filter((code) => code !== descriptor.code)
-                      : [...current, descriptor.code]
+            {isPairingQuestion() ? (
+              <div className="mb-8">
+                {wineProfileGroups.map((group) => {
+                  const profiles = wineProfiles.filter((wine) =>
+                    group.codes.includes(wine.code)
                   )
-                }}
-                className={`text-left p-3 rounded-xl border transition-all ${
-                  selected
-                    ? 'border-amber-400 bg-amber-400/10'
-                    : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
-                }`}
-              >
-                <span className="font-mono text-amber-400 mr-2">
-                  {descriptor.code}
-                </span>
-                <span className="text-sm text-zinc-300">
-                  {descriptor.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    ))}
-  </div>
-</Field>
 
-<div className="mt-6">
-  <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
-    <textarea
-      key={currentQuestion.question_code}
-      value={reason}
-      onChange={(e) => setReason(e.target.value)}
-      className="input min-h-[100px]"
-      placeholder="Ex: explique em palavras suas, se quiser..."
-    />
-  </Field>
-</div>
+                  return (
+                    <div key={group.title} className="mb-8">
+                      <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
+                        {group.title}
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {profiles.map((wine) => (
+                          <button
+                            key={wine.code}
+                            onClick={() => setSelectedWine(wine.code)}
+                            className={`text-left p-4 rounded-xl border transition-all ${
+                              selectedWine === wine.code
+                                ? 'border-amber-400 bg-amber-400/10'
+                                : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                            }`}
+                          >
+                            <div className="flex gap-2 items-center mb-1">
+                              <Wine className="w-4 h-4 text-amber-400" />
+                              <span className="font-mono text-amber-400">{wine.code}</span>
+                            </div>
+                            <div className="text-sm text-zinc-300">{wine.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="mb-8">
+                <Field label={getNationalLabel()} icon={<MapPin className="w-4 h-4" />}>
+                  <input
+                    key={currentQuestion.question_code}
+                    value={nationalAnswer}
+                    onChange={(e) => setNationalAnswer(e.target.value)}
+                    className="input"
+                    placeholder={getNationalPlaceholder()}
+                  />
+                </Field>
+              </div>
+            )}
+
+            <Field label="Que atributos justificam esta escolha?" icon={<Brain className="w-4 h-4" />}>
+              <div className="space-y-6">
+                {descriptorGroups.map((group) => (
+                  <div key={group.title}>
+                    <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
+                      {group.title}
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {group.items.map((descriptor) => {
+                        const selected = selectedDescriptors.includes(descriptor.code)
+
+                        return (
+                          <button
+                            key={descriptor.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedDescriptors((current) =>
+                                selected
+                                  ? current.filter((code) => code !== descriptor.code)
+                                  : [...current, descriptor.code]
+                              )
+                            }}
+                            className={`text-left p-3 rounded-xl border transition-all ${
+                              selected
+                                ? 'border-amber-400 bg-amber-400/10'
+                                : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                            }`}
+                          >
+                            <span className="font-mono text-amber-400 mr-2">
+                              {descriptor.code}
+                            </span>
+                            <span className="text-sm text-zinc-300">
+                              {descriptor.label}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Field>
+
+            <div className="mt-6">
+              <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
+                <textarea
+                  key={currentQuestion.question_code}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="input min-h-[100px]"
+                  placeholder="Ex: explique em palavras suas, se quiser..."
+                />
+              </Field>
+            </div>
 
             <div className="mt-6">
               <label className="block text-sm text-zinc-300 mb-2">
