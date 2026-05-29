@@ -13,3 +13,21 @@ select option {
   background-color: #18181b;
   color: #e4e4e7;
 }
+.input {
+  width: 100%;
+  background: rgba(24, 24, 27, 0.8);
+  border: 1px solid rgba(82, 82, 91, 0.5);
+  color: #f4f4f5;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: rgba(251, 191, 36, 0.7);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+}
+
+.input::placeholder {
+  color: #71717a;
+}
