@@ -170,18 +170,20 @@ await supabase
     setLoading(false)
   }
 
-  async function saveAnswer() {
-    if (!expertId || !sessionId) return
+ async function saveAnswer() {
+  if (!expertId || !sessionId || !currentQuestion) return
 
-    if (!selectedWine) {
-      setError('Seleciona um perfil vínico.')
-      return
-    }
+  if (!selectedWine) {
+    setError('Seleciona um perfil vínico.')
+    return
+  }
 
-    setLoading(true)
-    setError(null)
+  setLoading(true)
+  setError(null)
 
-    const { error: insertError } = await supabase.from('knowledge_answers').insert({
+  const { error: insertError } = await supabase
+    .from('knowledge_answers')
+    .insert({
       session_id: sessionId,
       expert_id: expertId,
       question_code: currentQuestion.code,
@@ -195,75 +197,76 @@ await supabase
       },
       confidence,
     })
-await supabase
-  .from('interview_messages')
-  .insert({
-    session_id: sessionId,
-    expert_id: expertId,
-    role: 'expert',
-    form_phase: 'form_1_pairing_structure',
-    knowledge_target: 'pairing',
-    message: JSON.stringify({
-      question_code: currentQuestion.code,
-      wine_profile_code: selectedWine,
-      reason,
-      confidence,
-    }),
-  })
-    if (insertError) {
-      setError(insertError.message)
-      setLoading(false)
-      return
-    }
 
-    const newCount = savedCount + 1
+  if (insertError) {
+    setError(insertError.message)
+    setLoading(false)
+    return
+  }
 
-    await supabase
-      .from('knowledge_sessions')
-      .update({
-        questions_answered: newCount,
-        knowledge_points_generated: newCount,
-      })
-      .eq('id', sessionId)
-
-    setSavedCount(newCount)
-    setSelectedWine('')
-    setReason('')
-    setConfidence(1)
-
-    if (questionIndex + 1 >= questions.length) {
-      await supabase
-        .from('knowledge_sessions')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', sessionId)
-
-      setStage('done')
-
-      const nextQuestion = questions[questionIndex + 1]
-
-if (nextQuestion) {
   await supabase
     .from('interview_messages')
     .insert({
       session_id: sessionId,
       expert_id: expertId,
-      role: 'assistant',
+      role: 'expert',
       form_phase: 'form_1_pairing_structure',
       knowledge_target: 'pairing',
-      message: nextQuestion.question_text,
+      message: JSON.stringify({
+        question_code: currentQuestion.code,
+        wine_profile_code: selectedWine,
+        reason,
+        confidence,
+      }),
     })
-}
-      
-    } else {
-      setQuestionIndex(questionIndex + 1)
+
+  const newCount = savedCount + 1
+
+  await supabase
+    .from('knowledge_sessions')
+    .update({
+      questions_answered: newCount,
+      knowledge_points_generated: newCount,
+    })
+    .eq('id', sessionId)
+
+  setSavedCount(newCount)
+  setSelectedWine('')
+  setReason('')
+  setConfidence(1)
+
+  if (questionIndex + 1 >= questions.length) {
+    await supabase
+      .from('knowledge_sessions')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+
+    setStage('done')
+  } else {
+    const nextQuestion = questions[questionIndex + 1]
+
+    if (nextQuestion) {
+      await supabase
+        .from('interview_messages')
+        .insert({
+          session_id: sessionId,
+          expert_id: expertId,
+          role: 'assistant',
+          form_phase: 'form_1_pairing_structure',
+          knowledge_target: 'pairing',
+          message: nextQuestion.question_text,
+        })
     }
 
-    setLoading(false)
+    setQuestionIndex(questionIndex + 1)
   }
-    if (stage === 'interview' && !currentQuestion) {
+
+  setLoading(false)
+}
+  if (stage === 'interview' && !currentQuestion) {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
       <div className="text-center">
