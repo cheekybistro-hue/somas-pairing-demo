@@ -128,7 +128,7 @@ const descriptorGroups = [
 ]
 
 function KnowledgeInterview() {
-  const [stage, setStage] = useState<'profile' | 'interview' | 'done'>('profile')
+  const [stage, setStage] = useState<'profile' | 'module' | 'interview' | 'done'>('profile')
 
   const [name, setName] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -143,6 +143,9 @@ function KnowledgeInterview() {
 
   const [expertId, setExpertId] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
+
+  const [modules, setModules] = useState<any[]>([])
+  const [selectedModule, setSelectedModule] = useState<any | null>(null)
 
   const [questionIndex, setQuestionIndex] = useState(0)
   const [questions, setQuestions] = useState<any[]>([])
@@ -160,22 +163,40 @@ function KnowledgeInterview() {
     questions.length > 0 ? questions[questionIndex] : null
 
   useEffect(() => {
-    loadQuestions()
+    loadModules()
   }, [])
 
-  async function loadQuestions() {
+  async function loadModules() {
+    const { data, error } = await supabase
+      .from('knowledge_modules')
+      .select('*')
+      .eq('active', true)
+      .order('sort_order')
+
+    if (error) {
+      console.error(error)
+      setError(error.message)
+      return
+    }
+
+    setModules(data ?? [])
+  }
+
+  async function loadQuestionsForModule(formPhase: string) {
     const { data, error } = await supabase
       .from('knowledge_questions')
       .select('*')
       .eq('active', true)
+      .eq('form_phase', formPhase)
       .order('priority')
 
     if (error) {
       console.error(error)
-      return
+      setError(error.message)
+      return []
     }
 
-    setQuestions(data ?? [])
+    return data ?? []
   }
 
   function resetAnswerFields() {
@@ -282,14 +303,66 @@ function KnowledgeInterview() {
         session_id: session.id,
         expert_id: expert.id,
         role: 'assistant',
-        form_phase: currentQuestion?.form_phase ?? 'form_1_pairing_structure',
-        knowledge_target: currentQuestion?.question_type ?? 'pairing_choice',
+        form_phase: 'module_selection',
+        knowledge_target: 'module_selection',
         message:
-          'Bem-vindo ao SomAS Knowledge Interview. Vamos começar a construir conhecimento especializado para o motor de decisão.',
+          'Bem-vindo ao SomAS Knowledge Interview. Vamos escolher o módulo de conhecimento a preencher.',
+      })
+
+    setStage('module')
+    setLoading(false)
+  }
+
+  async function startModule(module: any) {
+    if (!expertId || !sessionId) return
+
+    setLoading(true)
+    setError(null)
+    resetAnswerFields()
+    setQuestionIndex(0)
+    setSavedCount(0)
+
+    const moduleQuestions = await loadQuestionsForModule(module.form_phase)
+
+    if (moduleQuestions.length === 0) {
+      setError('Este módulo ainda não tem perguntas ativas.')
+      setLoading(false)
+      return
+    }
+
+    setSelectedModule(module)
+    setQuestions(moduleQuestions)
+
+    await supabase
+      .from('expert_module_progress')
+      .upsert(
+        {
+          expert_id: expertId,
+          form_phase: module.form_phase,
+          status: 'in_progress',
+          questions_answered: 0,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'expert_id,form_phase' }
+      )
+
+    await supabase
+      .from('interview_messages')
+      .insert({
+        session_id: sessionId,
+        expert_id: expertId,
+        role: 'assistant',
+        form_phase: module.form_phase,
+        knowledge_target: module.module_code,
+        message: `Vamos iniciar o módulo: ${module.module_name}`,
       })
 
     setStage('interview')
     setLoading(false)
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100)
   }
 
   async function saveAnswer() {
@@ -376,11 +449,28 @@ function KnowledgeInterview() {
     setSavedCount(newCount)
 
     if (questionIndex + 1 >= questions.length) {
+      if (selectedModule) {
+        await supabase
+          .from('expert_module_progress')
+          .upsert(
+            {
+              expert_id: expertId,
+              form_phase: selectedModule.form_phase,
+              status: 'completed',
+              questions_answered: newCount,
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'expert_id,form_phase' }
+          )
+      }
+
       await supabase
         .from('knowledge_sessions')
         .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
+          status: 'module_completed',
+          questions_answered: newCount,
+          knowledge_points_generated: newCount,
         })
         .eq('id', sessionId)
 
@@ -512,10 +602,56 @@ function KnowledgeInterview() {
           </div>
         )}
 
+        {stage === 'module' && (
+          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
+            <p className="text-zinc-400 mb-8">
+              Para evitar entrevistas demasiado longas, cada módulo é preenchido separadamente.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {modules.map((module) => (
+                <button
+                  key={module.module_code}
+                  type="button"
+                  onClick={() => startModule(module)}
+                  disabled={loading || module.estimated_questions === 0}
+                  className={`text-left p-5 rounded-2xl border transition-all ${
+                    module.estimated_questions === 0
+                      ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
+                      : 'border-zinc-700 bg-zinc-900/50 hover:border-amber-400 hover:bg-amber-400/5'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <div className="text-amber-400 font-mono text-sm mb-1">
+                        {module.module_code}
+                      </div>
+                      <h3 className="text-xl font-medium text-zinc-100">
+                        {module.module_name}
+                      </h3>
+                    </div>
+                    <span className="text-sm text-zinc-400 whitespace-nowrap">
+                      {module.estimated_questions} perguntas
+                    </span>
+                  </div>
+
+                  <p className="text-zinc-400 text-sm">
+                    {module.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+
+            {error && <ErrorBox message={error} />}
+          </div>
+        )}
+
         {stage === 'interview' && currentQuestion && (
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
-            <div className="mb-6 text-sm text-zinc-400">
-              Pergunta {questionIndex + 1} de {questions.length}
+            <div className="mb-6 flex flex-col gap-1 text-sm text-zinc-400">
+              <span>{selectedModule?.module_name}</span>
+              <span>Pergunta {questionIndex + 1} de {questions.length}</span>
             </div>
 
             <div className="text-amber-400 font-mono mb-2">
@@ -661,10 +797,28 @@ function KnowledgeInterview() {
         {stage === 'done' && (
           <div className="bg-zinc-800/50 border border-amber-400/30 rounded-2xl p-8 max-w-3xl mx-auto text-center">
             <CheckCircle className="w-14 h-14 text-amber-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-light mb-3">Entrevista concluída</h2>
-            <p className="text-zinc-400">
-              Obrigado. As respostas foram guardadas e já fazem parte da camada de conhecimento SomAS.
+            <h2 className="text-2xl font-light mb-3">Módulo concluído</h2>
+            <p className="text-zinc-400 mb-2">
+              {selectedModule?.module_name || 'Este módulo'} foi guardado com sucesso.
             </p>
+            <p className="text-zinc-500 text-sm mb-8">
+              {savedCount} resposta(s) registada(s) na camada de conhecimento SomAS.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setStage('module')
+                setSelectedModule(null)
+                setQuestions([])
+                resetAnswerFields()
+                setQuestionIndex(0)
+                setSavedCount(0)
+              }}
+              className="btn-primary mx-auto"
+            >
+              Escolher outro módulo
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         )}
       </div>
