@@ -281,6 +281,7 @@ await supabase
   setSavedCount(newCount)
   setSelectedWine('')
   setSelectedDescriptors([])
+  setReason('')
   setConfidence(1)
 
   if (questionIndex + 1 >= questions.length) {
