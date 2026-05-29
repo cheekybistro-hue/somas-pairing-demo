@@ -76,30 +76,55 @@ const wineProfileGroups = [
   },
 ]
 
-const wineDescriptors = [
-  { code: 'A', label: 'Alta acidez' },
-  { code: 'B', label: 'Perfil mineral' },
-  { code: 'C', label: 'Perfil salino / atlântico' },
-  { code: 'D', label: 'Fruta fresca' },
-  { code: 'E', label: 'Fruta madura' },
-  { code: 'F', label: 'Estrutura média' },
-  { code: 'G', label: 'Estrutura elevada' },
-  { code: 'H', label: 'Tanino firme' },
-  { code: 'I', label: 'Tanino macio' },
-  { code: 'J', label: 'Perfil floral' },
-  { code: 'K', label: 'Perfil herbal / vegetal' },
-  { code: 'L', label: 'Perfil especiado' },
-  { code: 'M', label: 'Perfil tostado / madeira' },
-  { code: 'N', label: 'Perfil fumado' },
-  { code: 'O', label: 'Perfil oxidativo' },
-  { code: 'P', label: 'Perfil doce' },
-  { code: 'Q', label: 'Alta frescura' },
-  { code: 'R', label: 'Grande longevidade' },
-  { code: 'S', label: 'Contacto com borras / batonnage' },
-  { code: 'T', label: 'Perfil elegante / delicado / baixa extração' },
-  { code: 'U', label: 'Colheita tardia' },
-  { code: 'V', label: 'Fortificado' },
-  { code: 'W', label: 'Outro' },
+const descriptorGroups = [
+  {
+    title: 'Frescura e Acidez',
+    items: [
+      { code: 'A', label: 'Alta acidez' },
+      { code: 'B', label: 'Perfil mineral' },
+      { code: 'C', label: 'Perfil salino / atlântico' },
+      { code: 'Q', label: 'Alta frescura' },
+    ],
+  },
+  {
+    title: 'Fruta e Aromática',
+    items: [
+      { code: 'D', label: 'Fruta fresca' },
+      { code: 'E', label: 'Fruta madura' },
+      { code: 'J', label: 'Perfil floral' },
+      { code: 'K', label: 'Perfil herbal / vegetal' },
+      { code: 'L', label: 'Perfil especiado' },
+    ],
+  },
+  {
+    title: 'Estrutura',
+    items: [
+      { code: 'F', label: 'Estrutura média' },
+      { code: 'G', label: 'Estrutura elevada' },
+      { code: 'H', label: 'Tanino firme' },
+      { code: 'I', label: 'Tanino macio' },
+      { code: 'T', label: 'Perfil elegante / delicado / baixa extração' },
+    ],
+  },
+  {
+    title: 'Evolução e Enologia',
+    items: [
+      { code: 'M', label: 'Perfil tostado / madeira' },
+      { code: 'N', label: 'Perfil fumado' },
+      { code: 'O', label: 'Perfil oxidativo' },
+      { code: 'R', label: 'Grande longevidade' },
+      { code: 'S', label: 'Contacto com borras / batonnage' },
+    ],
+  },
+  {
+    title: 'Estilos Especiais',
+    items: [
+      { code: 'P', label: 'Perfil doce' },
+      { code: 'U', label: 'Colheita tardia' },
+      { code: 'V', label: 'Fortificado' },
+      { code: 'W', label: 'Outro' },
+    ],
+  },
 ]
 
 function KnowledgeInterview() {
@@ -279,10 +304,6 @@ await supabase
     .eq('id', sessionId)
 
   setSavedCount(newCount)
-  setSelectedWine('')
-  setSelectedDescriptors([])
-  setReason('')
-  setConfidence(1)
 
   if (questionIndex + 1 >= questions.length) {
     await supabase
@@ -311,6 +332,10 @@ await supabase
     }
 
     setQuestionIndex(questionIndex + 1)
+    setSelectedWine('')
+  setSelectedDescriptors([])
+  setReason('')
+  setConfidence(1)
   setTimeout(() => {
   window.scrollTo({
     top: 0,
@@ -496,6 +521,7 @@ await supabase
 <div className="mt-6">
   <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
     <textarea
+      key={currentQuestion.question_code}
       value={reason}
       onChange={(e) => setReason(e.target.value)}
       className="input min-h-[100px]"
