@@ -193,6 +193,7 @@ function KnowledgeInterview() {
   const [sessionId, setSessionId] = useState<string | null>(null)
 
   const [modules, setModules] = useState<any[]>([])
+  const [moduleProgress, setModuleProgress] = useState<any[]>([])
   const [selectedModule, setSelectedModule] = useState<any | null>(null)
 
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -228,6 +229,34 @@ function KnowledgeInterview() {
     }
 
     setModules(data ?? [])
+  }
+
+  async function loadModuleProgress(currentExpertId: string) {
+    const { data, error } = await supabase
+      .from('expert_module_progress')
+      .select('*')
+      .eq('expert_id', currentExpertId)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    setModuleProgress(data ?? [])
+  }
+
+  function getProgressForModule(formPhase: string) {
+    return moduleProgress.find((progress) => progress.form_phase === formPhase)
+  }
+
+  function getProgressPercent(module: any) {
+    const progress = getProgressForModule(module.form_phase)
+    const answered = progress?.questions_answered ?? 0
+    const total = module.estimated_questions || 0
+
+    if (!total) return 0
+
+    return Math.min(100, Math.round((answered / total) * 100))
   }
 
   async function loadQuestionsForModule(formPhase: string) {
@@ -356,6 +385,7 @@ function KnowledgeInterview() {
 
     setExpertId(expert.id)
     setSessionId(session.id)
+    await loadModuleProgress(expert.id)
 
     await supabase
       .from('interview_messages')
@@ -390,8 +420,16 @@ function KnowledgeInterview() {
       return
     }
 
+    const progress = getProgressForModule(module.form_phase)
+    const existingAnswered = progress?.questions_answered ?? 0
+    const startIndex = progress?.status === 'completed'
+      ? 0
+      : Math.min(existingAnswered, Math.max(moduleQuestions.length - 1, 0))
+
     setSelectedModule(module)
     setQuestions(moduleQuestions)
+    setQuestionIndex(startIndex)
+    setSavedCount(progress?.status === 'completed' ? 0 : existingAnswered)
 
     await supabase
       .from('expert_module_progress')
@@ -399,8 +437,8 @@ function KnowledgeInterview() {
         {
           expert_id: expertId,
           form_phase: module.form_phase,
-          status: 'in_progress',
-          questions_answered: 0,
+          status: progress?.status === 'completed' ? 'completed' : 'in_progress',
+          questions_answered: progress?.status === 'completed' ? moduleQuestions.length : existingAnswered,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'expert_id,form_phase' }
@@ -522,6 +560,23 @@ function KnowledgeInterview() {
 
     setSavedCount(newCount)
 
+    if (selectedModule) {
+      await supabase
+        .from('expert_module_progress')
+        .upsert(
+          {
+            expert_id: expertId,
+            form_phase: selectedModule.form_phase,
+            status: 'in_progress',
+            questions_answered: newCount,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'expert_id,form_phase' }
+        )
+
+      await loadModuleProgress(expertId)
+    }
+
     if (questionIndex + 1 >= questions.length) {
       if (selectedModule) {
         await supabase
@@ -537,6 +592,8 @@ function KnowledgeInterview() {
             },
             { onConflict: 'expert_id,form_phase' }
           )
+
+        await loadModuleProgress(expertId)
       }
 
       await supabase
@@ -684,37 +741,61 @@ function KnowledgeInterview() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {modules.map((module) => (
-                <button
-                  key={module.module_code}
-                  type="button"
-                  onClick={() => startModule(module)}
-                  disabled={loading || module.estimated_questions === 0}
-                  className={`text-left p-5 rounded-2xl border transition-all ${
-                    module.estimated_questions === 0
-                      ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
-                      : 'border-zinc-700 bg-zinc-900/50 hover:border-amber-400 hover:bg-amber-400/5'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                      <div className="text-amber-400 font-mono text-sm mb-1">
-                        {module.module_code}
-                      </div>
-                      <h3 className="text-xl font-medium text-zinc-100">
-                        {module.module_name}
-                      </h3>
-                    </div>
-                    <span className="text-sm text-zinc-400 whitespace-nowrap">
-                      {module.estimated_questions} perguntas
-                    </span>
-                  </div>
+              {modules.map((module) => {
+                const progress = getProgressForModule(module.form_phase)
+                const answered = progress?.questions_answered ?? 0
+                const percent = getProgressPercent(module)
+                const completed = progress?.status === 'completed'
 
-                  <p className="text-zinc-400 text-sm">
-                    {module.description}
-                  </p>
-                </button>
-              ))}
+                return (
+                  <button
+                    key={module.module_code}
+                    type="button"
+                    onClick={() => startModule(module)}
+                    disabled={loading || module.estimated_questions === 0}
+                    className={`text-left p-5 rounded-2xl border transition-all ${
+                      module.estimated_questions === 0
+                        ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
+                        : completed
+                          ? 'border-emerald-700/60 bg-emerald-950/10 hover:border-amber-400 hover:bg-amber-400/5'
+                          : 'border-zinc-700 bg-zinc-900/50 hover:border-amber-400 hover:bg-amber-400/5'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <div className="text-amber-400 font-mono text-sm mb-1">
+                          {module.module_code}
+                        </div>
+                        <h3 className="text-xl font-medium text-zinc-100">
+                          {module.module_name}
+                        </h3>
+                      </div>
+                      <span className="text-sm text-zinc-400 whitespace-nowrap">
+                        {answered} / {module.estimated_questions}
+                      </span>
+                    </div>
+
+                    <p className="text-zinc-400 text-sm mb-4">
+                      {module.description}
+                    </p>
+
+                    {module.estimated_questions > 0 && (
+                      <div>
+                        <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden mb-2">
+                          <div
+                            className="h-full rounded-full bg-amber-400"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-zinc-500">
+                          <span>{completed ? 'Completo' : progress?.status === 'in_progress' ? 'Em curso' : 'Não iniciado'}</span>
+                          <span>{percent}%</span>
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
 
             {error && <ErrorBox message={error} />}
