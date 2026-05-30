@@ -109,6 +109,11 @@ const similarityLevels = [
   'Parcialmente semelhante',
 ]
 
+
+function isQualitativeRelationshipType(questionType: string) {
+  return ['qualitative_relationship', 'similar_profile', 'relationship_profile'].includes(questionType)
+}
+
 const descriptorGroups = [
   {
     title: 'Frescura e Acidez',
@@ -539,7 +544,7 @@ function KnowledgeInterview() {
       return selectedWine
     }
 
-    if (currentQuestion.question_type === 'qualitative_relationship') {
+    if (isQualitativeRelationshipType(currentQuestion.question_type)) {
       if (!selectedWine || !similarityDegree) return ''
       return `${selectedWine} | ${similarityDegree}`
     }
@@ -566,7 +571,7 @@ function KnowledgeInterview() {
       }
     }
 
-    if (currentQuestion.question_type === 'qualitative_relationship') {
+    if (isQualitativeRelationshipType(currentQuestion.question_type)) {
       return {
         ...base,
         source_profile_code: currentQuestion.wine_profile_code,
@@ -864,7 +869,7 @@ function KnowledgeInterview() {
             />
 
             <DescriptorSelector
-              label={currentQuestion.question_type === 'qualitative_relationship'
+              label={isQualitativeRelationshipType(currentQuestion.question_type)
                 ? 'Estilo de Vinho'
                 : 'Que atributos justificam esta escolha?'}
               selectedDescriptors={selectedDescriptors}
@@ -957,7 +962,7 @@ function QuestionInput({
     )
   }
 
-  if (question.question_type === 'qualitative_relationship') {
+  if (isQualitativeRelationshipType(question.question_type)) {
     return (
       <div className="mb-8">
         <Field label="Perfil vínico mais semelhante" icon={<Wine className="w-4 h-4" />}>
