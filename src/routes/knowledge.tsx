@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   Brain,
@@ -11,6 +11,9 @@ import {
   CheckCircle,
   Wine,
   LogOut,
+  BarChart3,
+  Target,
+  Activity,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/knowledge')({
@@ -35,6 +38,7 @@ type Progress = {
   status: string
   questions_answered: number
   completed_at: string | null
+  updated_at?: string | null
 }
 
 type Question = {
@@ -824,6 +828,31 @@ function KnowledgeInterview() {
 
   const moduleCards = useMemo(() => modules, [modules])
 
+  const dashboardStats = useMemo(() => {
+    const totalQuestions = modules.reduce((sum, module) => sum + (module.estimated_questions || 0), 0)
+    const totalAnswered = modules.reduce((sum, module) => {
+      const answered = progress[module.form_phase]?.questions_answered ?? 0
+      return sum + Math.min(answered, module.estimated_questions || answered)
+    }, 0)
+    const percent = totalQuestions > 0 ? Math.min(Math.round((totalAnswered / totalQuestions) * 100), 100) : 0
+    const modulesStarted = modules.filter((module) => (progress[module.form_phase]?.questions_answered ?? 0) > 0).length
+    const modulesCompleted = modules.filter((module) => progress[module.form_phase]?.status === 'completed').length
+    const lastUpdated = Object.values(progress)
+      .map((item) => item.updated_at || item.completed_at)
+      .filter(Boolean)
+      .sort()
+      .at(-1)
+
+    return {
+      totalQuestions,
+      totalAnswered,
+      percent,
+      modulesStarted,
+      modulesCompleted,
+      lastUpdated,
+    }
+  }, [modules, progress])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -926,46 +955,94 @@ function KnowledgeInterview() {
         )}
 
         {stage === 'module' && (
-          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
-            <p className="text-zinc-400 mb-8">Para evitar entrevistas demasiado longas, cada módulo é preenchido separadamente.</p>
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                <div>
+                  <p className="text-sm text-zinc-400 mb-2">Dashboard do especialista</p>
+                  <h2 className="text-3xl font-light">Olá {displayName || name || 'especialista'} 👋</h2>
+                  <p className="text-zinc-400 mt-2">O teu conhecimento está a alimentar o motor de decisão SomAS.</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-700 bg-zinc-900/40 p-4 min-w-[220px]">
+                  <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Perfil</div>
+                  <div className="font-semibold">{role || 'Especialista'}</div>
+                  <div className="text-sm text-zinc-400 mt-1">{email || userEmail}</div>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {moduleCards.map((module) => {
-                const p = progress[module.form_phase]
-                const answered = p?.questions_answered ?? 0
-                const total = module.estimated_questions || 0
-                const percent = total > 0 ? Math.min(Math.round((answered / total) * 100), 100) : 0
-                const disabled = total === 0
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard
+                  icon={<BarChart3 className="w-5 h-5" />}
+                  label="Conhecimento contribuído"
+                  value={`${dashboardStats.totalAnswered} / ${dashboardStats.totalQuestions}`}
+                  helper={`${dashboardStats.percent}% concluído`}
+                />
+                <StatCard
+                  icon={<Target className="w-5 h-5" />}
+                  label="Módulos"
+                  value={`${dashboardStats.modulesCompleted} completos`}
+                  helper={`${dashboardStats.modulesStarted} iniciados`}
+                />
+                <StatCard
+                  icon={<Activity className="w-5 h-5" />}
+                  label="Última atividade"
+                  value={dashboardStats.lastUpdated ? 'Registada' : 'Sem atividade'}
+                  helper={dashboardStats.lastUpdated ? new Date(dashboardStats.lastUpdated).toLocaleString('pt-PT') : 'Começa por um módulo'}
+                />
+              </div>
 
-                return (
-                  <button
-                    key={module.module_code}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => startModule(module)}
-                    className={`text-left p-5 rounded-2xl border transition-all ${
-                      disabled
-                        ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
-                        : 'border-zinc-700 bg-zinc-900/40 hover:border-amber-400/70'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="text-xs font-mono text-amber-400">{module.module_code}</span>
-                      <span className="text-xs text-zinc-400">{answered} / {total}</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">{module.module_name}</h3>
-                    <p className="text-sm text-zinc-400 mb-4">{module.description}</p>
-                    <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-amber-400" style={{ width: `${percent}%` }} />
-                    </div>
-                    <div className="flex justify-between mt-2 text-xs text-zinc-500">
-                      <span>{p?.status === 'completed' ? 'Completo' : p?.status === 'in_progress' ? 'Em curso' : 'Não iniciado'}</span>
-                      <span>{percent}%</span>
-                    </div>
-                  </button>
-                )
-              })}
+              <div className="mt-6">
+                <div className="h-3 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
+                  <div className="h-full bg-amber-400" style={{ width: `${dashboardStats.percent}%` }} />
+                </div>
+                <div className="mt-2 flex justify-between text-xs text-zinc-500">
+                  <span>Progresso global</span>
+                  <span>{dashboardStats.percent}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+              <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
+              <p className="text-zinc-400 mb-8">Para evitar entrevistas demasiado longas, cada módulo é preenchido separadamente.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {moduleCards.map((module) => {
+                  const p = progress[module.form_phase]
+                  const answered = p?.questions_answered ?? 0
+                  const total = module.estimated_questions || 0
+                  const percent = total > 0 ? Math.min(Math.round((answered / total) * 100), 100) : 0
+                  const disabled = total === 0
+
+                  return (
+                    <button
+                      key={module.module_code}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => startModule(module)}
+                      className={`text-left p-5 rounded-2xl border transition-all ${
+                        disabled
+                          ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
+                          : 'border-zinc-700 bg-zinc-900/40 hover:border-amber-400/70'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-xs font-mono text-amber-400">{module.module_code}</span>
+                        <span className="text-xs text-zinc-400">{answered} / {total}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{module.module_name}</h3>
+                      <p className="text-sm text-zinc-400 mb-4">{module.description}</p>
+                      <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="h-full bg-amber-400" style={{ width: `${percent}%` }} />
+                      </div>
+                      <div className="flex justify-between mt-2 text-xs text-zinc-500">
+                        <span>{p?.status === 'completed' ? 'Completo' : p?.status === 'in_progress' ? 'Em curso' : 'Não iniciado'}</span>
+                        <span>{percent}%</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -1434,6 +1511,20 @@ function Field({ label, icon, children }: { label: string; icon: React.ReactNode
       </div>
       {children}
     </label>
+  )
+}
+
+
+function StatCard({ icon, label, value, helper }: { icon: ReactNode; label: string; value: string; helper: string }) {
+  return (
+    <div className="rounded-2xl border border-zinc-700 bg-zinc-900/40 p-5">
+      <div className="flex items-center gap-2 text-amber-400 mb-3">
+        {icon}
+        <span className="text-xs uppercase tracking-widest text-zinc-400">{label}</span>
+      </div>
+      <div className="text-2xl font-semibold">{value}</div>
+      <div className="text-sm text-zinc-500 mt-1">{helper}</div>
+    </div>
   )
 }
 
