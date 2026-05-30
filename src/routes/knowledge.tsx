@@ -82,13 +82,31 @@ const wineProfiles = [
   { code: 'W18', label: 'Tinto estruturado com madeira' },
   { code: 'W19', label: 'Tinto potente' },
   { code: 'W20', label: 'Tinto terroso' },
+  { code: 'W21', label: 'Tinto elegante premium' },
+  { code: 'W22', label: 'Tinto fumado' },
+  { code: 'W23', label: 'Vinho de talha' },
+  { code: 'W24', label: 'Branco doce' },
+  { code: 'W25', label: 'Licoroso' },
+  { code: 'W26', label: 'Porto Ruby' },
+  { code: 'W27', label: 'Branco estilo Borgonha' },
+  { code: 'W28', label: 'Tinto estilo Bordéus' },
+  { code: 'W29', label: 'Tinto estilo Piemonte' },
+  { code: 'W30', label: 'Branco estilo Riesling' },
 ]
 
 const wineProfileGroups = [
   { title: 'Brancos', codes: ['W01', 'W02', 'W03', 'W04', 'W05', 'W06'] },
   { title: 'Espumantes', codes: ['W07', 'W08', 'W09'] },
   { title: 'Rosés', codes: ['W10', 'W11'] },
-  { title: 'Tintos', codes: ['W12', 'W13', 'W14', 'W15', 'W16', 'W17', 'W18', 'W19', 'W20'] },
+  { title: 'Tintos', codes: ['W12', 'W13', 'W14', 'W15', 'W16', 'W17', 'W18', 'W19', 'W20', 'W21', 'W22'] },
+  { title: 'Especiais', codes: ['W23', 'W24', 'W25', 'W26'] },
+  { title: 'Referências Internacionais', codes: ['W27', 'W28', 'W29', 'W30'] },
+]
+
+const similarityLevels = [
+  'Muito semelhante',
+  'Semelhante',
+  'Parcialmente semelhante',
 ]
 
 const descriptorGroups = [
@@ -211,6 +229,7 @@ function KnowledgeInterview() {
   const [questionIndex, setQuestionIndex] = useState(0)
   const [selectedWine, setSelectedWine] = useState('')
   const [selectedValue, setSelectedValue] = useState('')
+  const [similarityDegree, setSimilarityDegree] = useState('')
   const [reason, setReason] = useState('')
   const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>([])
   const [confidence, setConfidence] = useState(1)
@@ -507,6 +526,7 @@ function KnowledgeInterview() {
   function clearAnswerState() {
     setSelectedWine('')
     setSelectedValue('')
+    setSimilarityDegree('')
     setSelectedDescriptors([])
     setReason('')
     setConfidence(1)
@@ -514,7 +534,16 @@ function KnowledgeInterview() {
 
   function getAnswerValue() {
     if (!currentQuestion) return ''
-    if (currentQuestion.question_type === 'pairing_choice') return selectedWine
+
+    if (currentQuestion.question_type === 'pairing_choice') {
+      return selectedWine
+    }
+
+    if (currentQuestion.question_type === 'qualitative_relationship') {
+      if (!selectedWine || !similarityDegree) return ''
+      return `${selectedWine} | ${similarityDegree}`
+    }
+
     return selectedValue.trim()
   }
 
@@ -534,6 +563,16 @@ function KnowledgeInterview() {
       return {
         ...base,
         wine_profile_code: selectedWine,
+      }
+    }
+
+    if (currentQuestion.question_type === 'qualitative_relationship') {
+      return {
+        ...base,
+        source_profile_code: currentQuestion.wine_profile_code,
+        similar_profile_code: selectedWine,
+        similarity_degree: similarityDegree,
+        wine_style_codes: selectedDescriptors,
       }
     }
 
@@ -820,9 +859,17 @@ function KnowledgeInterview() {
               setSelectedWine={setSelectedWine}
               selectedValue={selectedValue}
               setSelectedValue={setSelectedValue}
+              similarityDegree={similarityDegree}
+              setSimilarityDegree={setSimilarityDegree}
             />
 
-            <DescriptorSelector selectedDescriptors={selectedDescriptors} setSelectedDescriptors={setSelectedDescriptors} />
+            <DescriptorSelector
+              label={currentQuestion.question_type === 'qualitative_relationship'
+                ? 'Estilo de Vinho'
+                : 'Que atributos justificam esta escolha?'}
+              selectedDescriptors={selectedDescriptors}
+              setSelectedDescriptors={setSelectedDescriptors}
+            />
 
             <div className="mt-6">
               <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
@@ -872,12 +919,16 @@ function QuestionInput({
   setSelectedWine,
   selectedValue,
   setSelectedValue,
+  similarityDegree,
+  setSimilarityDegree,
 }: {
   question: Question
   selectedWine: string
   setSelectedWine: (value: string) => void
   selectedValue: string
   setSelectedValue: (value: string) => void
+  similarityDegree: string
+  setSimilarityDegree: (value: string) => void
 }) {
   if (question.question_type === 'pairing_choice') {
     return (
@@ -902,6 +953,62 @@ function QuestionInput({
             </div>
           )
         })}
+      </div>
+    )
+  }
+
+  if (question.question_type === 'qualitative_relationship') {
+    return (
+      <div className="mb-8">
+        <Field label="Perfil vínico mais semelhante" icon={<Wine className="w-4 h-4" />}>
+          <div className="space-y-8 mb-8">
+            {wineProfileGroups.map((group) => {
+              const profiles = wineProfiles
+                .filter((wine) => group.codes.includes(wine.code))
+                .filter((wine) => wine.code !== question.wine_profile_code)
+
+              if (profiles.length === 0) return null
+
+              return (
+                <div key={group.title}>
+                  <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">
+                    {group.title}
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {profiles.map((wine) => (
+                      <ChoiceButton
+                        key={wine.code}
+                        selected={selectedWine === wine.code}
+                        onClick={() => setSelectedWine(wine.code)}
+                      >
+                        <div className="flex gap-2 items-center mb-1">
+                          <Wine className="w-4 h-4 text-amber-400" />
+                          <span className="font-mono text-amber-400">{wine.code}</span>
+                        </div>
+                        <div className="text-sm text-zinc-300">{wine.label}</div>
+                      </ChoiceButton>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </Field>
+
+        <Field label="Grau de semelhança" icon={<Sparkles className="w-4 h-4" />}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {similarityLevels.map((level) => (
+              <ChoiceButton
+                key={level}
+                selected={similarityDegree === level}
+                onClick={() => setSimilarityDegree(level)}
+              >
+                {level}
+              </ChoiceButton>
+            ))}
+          </div>
+        </Field>
       </div>
     )
   }
@@ -944,14 +1051,16 @@ function QuestionInput({
 }
 
 function DescriptorSelector({
+  label,
   selectedDescriptors,
   setSelectedDescriptors,
 }: {
+  label: string
   selectedDescriptors: string[]
   setSelectedDescriptors: React.Dispatch<React.SetStateAction<string[]>>
 }) {
   return (
-    <Field label="Que atributos justificam esta escolha?" icon={<Brain className="w-4 h-4" />}>
+    <Field label={label} icon={<Brain className="w-4 h-4" />}>
       <div className="space-y-6">
         {descriptorGroups.map((group) => (
           <div key={group.title}>
