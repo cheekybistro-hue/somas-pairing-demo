@@ -103,6 +103,101 @@ const wineProfileGroups = [
   { title: 'Referências Internacionais', codes: ['W27', 'W28', 'W29', 'W30'] },
 ]
 
+
+
+const internationalRegionStyles = [
+  'Chablis - França',
+  'White Burgundy - França',
+  'Sancerre - França',
+  'Loire Chenin - França',
+  'Champagne - França',
+  'Provence Rosé - França',
+  'Beaujolais - França',
+  'Burgundy Pinot Noir - França',
+  'Bordeaux - França',
+  'Northern Rhône Syrah - França',
+  'Rioja - Espanha',
+  'Barolo / Nebbiolo - Itália',
+  'Chianti / Sangiovese - Itália',
+  'Mosel Riesling - Alemanha',
+  'Tokaji - Hungria',
+  'Sauternes - França',
+  'Sherry - Espanha',
+  'Ruby Port wine style - Portugal',
+  'Tawny Port wine style - Portugal',
+  'Vintage Port wine style - Portugal',
+  'White Port wine style - Portugal',
+  'Orange wine - Geórgia / estilo global',
+  'Natural wine - estilo global',
+  'Napa Cabernet - USA',
+  'Priorat - Espanha',
+  'Etna Rosso - Itália',
+  'Rías Baixas - Espanha',
+  'Marlborough Sauvignon Blanc - Nova Zelândia',
+  'Barossa Shiraz - Austrália',
+  'Mendoza Malbec - Argentina',
+  'Stellenbosch Cabernet - África do Sul',
+  'Rías Baixas Albariño - Espanha',
+  'Cava - Espanha',
+  'Prosecco - Itália',
+  'Outro',
+]
+
+const internationalRegionGroups = [
+  { title: 'França', items: internationalRegionStyles.filter((item) => item.includes('França')) },
+  { title: 'Espanha e Portugal', items: internationalRegionStyles.filter((item) => item.includes('Espanha') || item.includes('Portugal')) },
+  { title: 'Itália', items: internationalRegionStyles.filter((item) => item.includes('Itália')) },
+  { title: 'Europa Central e estilos globais', items: internationalRegionStyles.filter((item) => item.includes('Alemanha') || item.includes('Hungria') || item.includes('Geórgia') || item.includes('global')) },
+  { title: 'Novo Mundo', items: internationalRegionStyles.filter((item) => item.includes('USA') || item.includes('Nova Zelândia') || item.includes('Austrália') || item.includes('Argentina') || item.includes('África do Sul')) },
+  { title: 'Outro', items: ['Outro'] },
+]
+
+const internationalGrapes = [
+  'Chardonnay',
+  'Sauvignon Blanc',
+  'Riesling',
+  'Chenin Blanc',
+  'Pinot Gris / Pinot Grigio',
+  'Gewürztraminer',
+  'Viognier',
+  'Semillon',
+  'Albariño',
+  'Verdejo',
+  'Garganega',
+  'Assyrtiko',
+  'Furmint',
+  'Pinot Noir',
+  'Cabernet Sauvignon',
+  'Merlot',
+  'Cabernet Franc',
+  'Syrah / Shiraz',
+  'Grenache / Garnacha',
+  'Tempranillo',
+  'Sangiovese',
+  'Nebbiolo',
+  'Barbera',
+  'Malbec',
+  'Zinfandel / Primitivo',
+  'Gamay',
+  'Mourvèdre / Monastrell',
+  'Carignan',
+  'Palomino',
+  'Pedro Ximénez',
+  'Muscat / Moscato',
+  'Corvina',
+  'Outra',
+]
+
+const internationalGrapeGroups = [
+  { title: 'Brancas', items: internationalGrapes.slice(0, 13) },
+  { title: 'Tintas', items: internationalGrapes.slice(13, 28) },
+  { title: 'Fortificados / doces / especiais', items: internationalGrapes.slice(28) },
+]
+
+function isInternationalIdentityType(questionType: string) {
+  return questionType === 'international_identity'
+}
+
 const similarityLevels = [
   'Muito semelhante',
   'Semelhante',
@@ -234,6 +329,12 @@ function KnowledgeInterview() {
   const [questionIndex, setQuestionIndex] = useState(0)
   const [selectedWine, setSelectedWine] = useState('')
   const [selectedValue, setSelectedValue] = useState('')
+  const [secondaryRegionStyles, setSecondaryRegionStyles] = useState<string[]>([])
+  const [primaryGrape, setPrimaryGrape] = useState('')
+  const [secondaryGrapes, setSecondaryGrapes] = useState<string[]>([])
+  const [referenceProducer, setReferenceProducer] = useState('')
+  const [referenceLabel, setReferenceLabel] = useState('')
+  const [referenceYear, setReferenceYear] = useState('')
   const [similarityDegree, setSimilarityDegree] = useState('')
   const [reason, setReason] = useState('')
   const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>([])
@@ -532,6 +633,12 @@ function KnowledgeInterview() {
     setSelectedWine('')
     setSelectedValue('')
     setSimilarityDegree('')
+    setSecondaryRegionStyles([])
+    setPrimaryGrape('')
+    setSecondaryGrapes([])
+    setReferenceProducer('')
+    setReferenceLabel('')
+    setReferenceYear('')
     setSelectedDescriptors([])
     setReason('')
     setConfidence(1)
@@ -547,6 +654,11 @@ function KnowledgeInterview() {
     if (isQualitativeRelationshipType(currentQuestion.question_type)) {
       if (!selectedWine || !similarityDegree) return ''
       return `${selectedWine} | ${similarityDegree}`
+    }
+
+    if (isInternationalIdentityType(currentQuestion.question_type)) {
+      if (!selectedValue || !primaryGrape) return ''
+      return `${selectedValue} | ${primaryGrape}`
     }
 
     return selectedValue.trim()
@@ -578,6 +690,22 @@ function KnowledgeInterview() {
         similar_profile_code: selectedWine,
         similarity_degree: similarityDegree,
         wine_style_codes: selectedDescriptors,
+      }
+    }
+
+    if (isInternationalIdentityType(currentQuestion.question_type)) {
+      return {
+        ...base,
+        primary_region_style: selectedValue,
+        secondary_region_styles: secondaryRegionStyles,
+        primary_grape: primaryGrape,
+        secondary_grapes: secondaryGrapes,
+        wine_style_codes: selectedDescriptors,
+        reference_wine: {
+          producer: referenceProducer.trim(),
+          label: referenceLabel.trim(),
+          year: referenceYear.trim(),
+        },
       }
     }
 
@@ -866,10 +994,22 @@ function KnowledgeInterview() {
               setSelectedValue={setSelectedValue}
               similarityDegree={similarityDegree}
               setSimilarityDegree={setSimilarityDegree}
+              secondaryRegionStyles={secondaryRegionStyles}
+              setSecondaryRegionStyles={setSecondaryRegionStyles}
+              primaryGrape={primaryGrape}
+              setPrimaryGrape={setPrimaryGrape}
+              secondaryGrapes={secondaryGrapes}
+              setSecondaryGrapes={setSecondaryGrapes}
+              referenceProducer={referenceProducer}
+              setReferenceProducer={setReferenceProducer}
+              referenceLabel={referenceLabel}
+              setReferenceLabel={setReferenceLabel}
+              referenceYear={referenceYear}
+              setReferenceYear={setReferenceYear}
             />
 
             <DescriptorSelector
-              label={isQualitativeRelationshipType(currentQuestion.question_type)
+              label={(isQualitativeRelationshipType(currentQuestion.question_type) || isInternationalIdentityType(currentQuestion.question_type))
                 ? 'Estilo de Vinho'
                 : 'Que atributos justificam esta escolha?'}
               selectedDescriptors={selectedDescriptors}
@@ -926,6 +1066,18 @@ function QuestionInput({
   setSelectedValue,
   similarityDegree,
   setSimilarityDegree,
+  secondaryRegionStyles,
+  setSecondaryRegionStyles,
+  primaryGrape,
+  setPrimaryGrape,
+  secondaryGrapes,
+  setSecondaryGrapes,
+  referenceProducer,
+  setReferenceProducer,
+  referenceLabel,
+  setReferenceLabel,
+  referenceYear,
+  setReferenceYear,
 }: {
   question: Question
   selectedWine: string
@@ -934,6 +1086,18 @@ function QuestionInput({
   setSelectedValue: (value: string) => void
   similarityDegree: string
   setSimilarityDegree: (value: string) => void
+  secondaryRegionStyles: string[]
+  setSecondaryRegionStyles: React.Dispatch<React.SetStateAction<string[]>>
+  primaryGrape: string
+  setPrimaryGrape: (value: string) => void
+  secondaryGrapes: string[]
+  setSecondaryGrapes: React.Dispatch<React.SetStateAction<string[]>>
+  referenceProducer: string
+  setReferenceProducer: (value: string) => void
+  referenceLabel: string
+  setReferenceLabel: (value: string) => void
+  referenceYear: string
+  setReferenceYear: (value: string) => void
 }) {
   if (question.question_type === 'pairing_choice') {
     return (
@@ -1018,6 +1182,86 @@ function QuestionInput({
     )
   }
 
+  if (isInternationalIdentityType(question.question_type)) {
+    return (
+      <div className="mb-8 space-y-10">
+        <Field label="Correspondência internacional principal" icon={<MapPin className="w-4 h-4" />}>
+          <p className="text-sm text-zinc-500 mb-4">Escolhe a referência internacional que melhor representa este perfil.</p>
+          <div className="space-y-8 mb-8">
+            {internationalRegionGroups.map((group) => (
+              <div key={group.title}>
+                <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">{group.title}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {group.items.map((item) => (
+                    <ChoiceButton key={item} selected={selectedValue === item} onClick={() => {
+                      setSelectedValue(item)
+                      setSecondaryRegionStyles((current) => current.filter((value) => value !== item))
+                    }}>
+                      {item}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Field>
+
+        <MultiChoiceLimited
+          label="Correspondências internacionais secundárias"
+          helper="Opcional. Podes escolher até 2 alternativas relevantes."
+          groups={internationalRegionGroups}
+          selected={secondaryRegionStyles}
+          setSelected={setSecondaryRegionStyles}
+          max={2}
+          exclude={selectedValue ? [selectedValue] : []}
+        />
+
+        <Field label="Uva internacional principal" icon={<Sparkles className="w-4 h-4" />}>
+          <p className="text-sm text-zinc-500 mb-4">Escolhe a uva que melhor representa esta correspondência.</p>
+          <div className="space-y-8 mb-8">
+            {internationalGrapeGroups.map((group) => (
+              <div key={group.title}>
+                <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">{group.title}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {group.items.map((item) => (
+                    <ChoiceButton key={item} selected={primaryGrape === item} onClick={() => {
+                      setPrimaryGrape(item)
+                      setSecondaryGrapes((current) => current.filter((value) => value !== item))
+                    }}>
+                      {item}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Field>
+
+        <MultiChoiceLimited
+          label="Uvas internacionais secundárias"
+          helper="Opcional. Podes escolher até 2 uvas secundárias."
+          groups={internationalGrapeGroups}
+          selected={secondaryGrapes}
+          setSelected={setSecondaryGrapes}
+          max={2}
+          exclude={primaryGrape ? [primaryGrape] : []}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Field label="Produtor opcional" icon={<Wine className="w-4 h-4" />}>
+            <input value={referenceProducer} onChange={(e) => setReferenceProducer(e.target.value)} className="input" placeholder="Ex: Raveneau" />
+          </Field>
+          <Field label="Rótulo / vinho opcional" icon={<Wine className="w-4 h-4" />}>
+            <input value={referenceLabel} onChange={(e) => setReferenceLabel(e.target.value)} className="input" placeholder="Ex: Chablis Premier Cru" />
+          </Field>
+          <Field label="Ano opcional" icon={<Wine className="w-4 h-4" />}>
+            <input value={referenceYear} onChange={(e) => setReferenceYear(e.target.value)} className="input" placeholder="Ex: 2020" />
+          </Field>
+        </div>
+      </div>
+    )
+  }
+
   if (question.question_type === 'national_region') {
     return (
       <Field label="Região portuguesa" icon={<MapPin className="w-4 h-4" />}>
@@ -1052,6 +1296,74 @@ function QuestionInput({
         <input value={selectedValue} onChange={(e) => setSelectedValue(e.target.value)} className="input" placeholder="Ex: produtor, rótulo ou vinho de referência..." />
       </Field>
     </div>
+  )
+}
+
+function MultiChoiceLimited({
+  label,
+  helper,
+  groups,
+  selected,
+  setSelected,
+  max,
+  exclude = [],
+}: {
+  label: string
+  helper?: string
+  groups: { title: string; items: string[] }[]
+  selected: string[]
+  setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  max: number
+  exclude?: string[]
+}) {
+  return (
+    <Field label={label} icon={<Sparkles className="w-4 h-4" />}>
+      {helper && <p className="text-sm text-zinc-500 mb-4">{helper}</p>}
+      <div className="space-y-8">
+        {groups.map((group) => {
+          const items = group.items.filter((item) => !exclude.includes(item))
+          if (items.length === 0) return null
+
+          return (
+            <div key={group.title}>
+              <h3 className="text-sm uppercase tracking-widest text-amber-400 mb-3">{group.title}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {items.map((item) => {
+                  const isSelected = selected.includes(item)
+                  const disabled = !isSelected && selected.length >= max
+
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        setSelected((current) =>
+                          current.includes(item)
+                            ? current.filter((value) => value !== item)
+                            : current.length >= max
+                              ? current
+                              : [...current, item]
+                        )
+                      }}
+                      className={`text-left p-4 rounded-xl border transition-all ${
+                        isSelected
+                          ? 'border-amber-400 bg-amber-400/10'
+                          : disabled
+                            ? 'border-zinc-800 bg-zinc-900/20 opacity-40 cursor-not-allowed'
+                            : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-500'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </Field>
   )
 }
 
