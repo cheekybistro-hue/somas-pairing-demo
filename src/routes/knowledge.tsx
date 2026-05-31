@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
+import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
 import {
   Brain,
   User,
@@ -1065,33 +1066,19 @@ function KnowledgeInterview() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-semibold">Consenso atual</h3>
-                </div>
-                <div className="space-y-3">
-                  {internationalConsensus.length === 0 && profileConsensus.length === 0 && (
-                    <p className="text-sm text-zinc-400">Conhecimento em construção. Assim que existirem respostas suficientes, o consenso aparece aqui.</p>
-                  )}
 
-                  {internationalConsensus.map((item) => (
-                    <div key={`intl-${item.wine_profile_code}-${item.region_style}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
-                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Identidade internacional</div>
-                      <div className="font-semibold">{item.wine_profile_code} → {item.region_style}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
-                    </div>
-                  ))}
-
-                  {profileConsensus.map((item) => (
-                    <div key={`profile-${item.source_profile}-${item.target_profile}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
-                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Relação qualitativa</div>
-                      <div className="font-semibold">{item.source_profile} → {item.target_profile}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <KnowledgeConsensusCard
+  internationalConsensus={internationalConsensus.map((item) => ({
+    label: `${item.wine_profile_code} → ${item.region_style}`,
+    value: item.region_style,
+    votes: item.votes,
+  }))}
+  profileConsensus={profileConsensus.map((item) => ({
+    label: `${item.source_profile} → ${item.target_profile}`,
+    value: item.target_profile,
+    votes: item.votes,
+  }))}
+/>
 
 <KnowledgeRecommendationCard
   recommendation={nextRecommendation}
