@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
 import {
   Brain,
   User,
@@ -19,7 +20,6 @@ import {
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
 })
-
 type Stage = 'auth' | 'profile' | 'module' | 'interview' | 'done'
 type AuthMode = 'login' | 'signup'
 
@@ -1093,27 +1093,10 @@ function KnowledgeInterview() {
                 </div>
               </div>
 
-              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-semibold">Próxima recomendação</h3>
-                </div>
-                <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5">
-                  <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">SomAS sugere</div>
-                  <div className="text-xl font-semibold mb-2">{nextRecommendation.title}</div>
-                  <p className="text-sm text-zinc-400">{nextRecommendation.text}</p>
-                  {nextRecommendation.module && (
-                    <button
-                      type="button"
-                      onClick={() => startModule(nextRecommendation.module!)}
-                      className="mt-5 inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300"
-                    >
-                      Continuar módulo <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+<KnowledgeRecommendationCard
+  recommendation={nextRecommendation}
+  onContinue={startModule}
+</div>
 
             <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
               <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
