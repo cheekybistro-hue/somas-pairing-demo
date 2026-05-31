@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
 import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
+import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
 import {
   Brain,
   User,
@@ -1034,19 +1035,19 @@ function KnowledgeInterview() {
               </div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<BarChart3 className="w-5 h-5" />}
                   label="Conhecimento contribuído"
                   value={`${dashboardStats.totalAnswered} / ${dashboardStats.totalQuestions}`}
                   helper={`${dashboardStats.percent}% concluído`}
                 />
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<Target className="w-5 h-5" />}
                   label="Módulos"
                   value={`${dashboardStats.modulesCompleted} completos`}
                   helper={`${dashboardStats.modulesStarted} iniciados`}
                 />
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<Activity className="w-5 h-5" />}
                   label="Última atividade"
                   value={dashboardStats.lastUpdated ? 'Registada' : 'Sem atividade'}
@@ -1594,20 +1595,6 @@ function Field({ label, icon, children }: { label: string; icon: React.ReactNode
       </div>
       {children}
     </label>
-  )
-}
-
-
-function StatCard({ icon, label, value, helper }: { icon: ReactNode; label: string; value: string; helper: string }) {
-  return (
-    <div className="rounded-2xl border border-zinc-700 bg-zinc-900/40 p-5">
-      <div className="flex items-center gap-2 text-amber-400 mb-3">
-        {icon}
-        <span className="text-xs uppercase tracking-widest text-zinc-400">{label}</span>
-      </div>
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className="text-sm text-zinc-500 mt-1">{helper}</div>
-    </div>
   )
 }
 
