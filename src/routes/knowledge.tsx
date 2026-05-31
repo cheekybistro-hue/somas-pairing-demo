@@ -41,6 +41,18 @@ type Progress = {
   updated_at?: string | null
 }
 
+type InternationalConsensus = {
+  wine_profile_code: string
+  region_style: string
+  votes: number
+}
+
+type ProfileConsensus = {
+  source_profile: string
+  target_profile: string
+  votes: number
+}
+
 type Question = {
   question_code: string
   form_phase: string
@@ -327,6 +339,8 @@ function KnowledgeInterview() {
 
   const [modules, setModules] = useState<KnowledgeModule[]>([])
   const [progress, setProgress] = useState<Record<string, Progress>>({})
+  const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
+  const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -398,6 +412,8 @@ function KnowledgeInterview() {
     setSessionId(null)
     setModules([])
     setProgress({})
+    setInternationalConsensus([])
+    setProfileConsensus([])
     setSelectedModule(null)
     setQuestions([])
     setQuestionIndex(0)
@@ -564,6 +580,24 @@ function KnowledgeInterview() {
 
     setModules(moduleData ?? [])
     setProgress(progressMap)
+    await loadConsensusInsights()
+  }
+
+  async function loadConsensusInsights() {
+    const { data: internationalData } = await supabase
+      .from('v_profile_international_top')
+      .select('*')
+      .order('votes', { ascending: false })
+      .limit(3)
+
+    const { data: profileData } = await supabase
+      .from('v_profile_consensus')
+      .select('*')
+      .order('votes', { ascending: false })
+      .limit(3)
+
+    setInternationalConsensus((internationalData ?? []) as InternationalConsensus[])
+    setProfileConsensus((profileData ?? []) as ProfileConsensus[])
   }
 
   async function startModule(module: KnowledgeModule) {
@@ -853,6 +887,34 @@ function KnowledgeInterview() {
     }
   }, [modules, progress])
 
+  const nextRecommendation = useMemo(() => {
+    const incompleteModules = modules
+      .map((module) => {
+        const answered = progress[module.form_phase]?.questions_answered ?? 0
+        const total = module.estimated_questions || 0
+        const percent = total > 0 ? answered / total : 1
+        return { module, answered, total, percent }
+      })
+      .filter((item) => item.total > 0 && item.answered < item.total)
+      .sort((a, b) => a.percent - b.percent)
+
+    const next = incompleteModules[0]
+
+    if (!next) {
+      return {
+        title: 'Base concluída',
+        text: 'Todos os módulos principais estão completos. O próximo passo será analisar consenso e aromas.',
+        module: null as KnowledgeModule | null,
+      }
+    }
+
+    return {
+      title: `Continuar ${next.module.module_code}`,
+      text: `${next.module.module_name}: ${next.answered} / ${next.total} respostas. Este é o módulo onde a tua contribuição agora gera mais valor.`,
+      module: next.module,
+    }
+  }, [modules, progress])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -998,6 +1060,57 @@ function KnowledgeInterview() {
                 <div className="mt-2 flex justify-between text-xs text-zinc-500">
                   <span>Progresso global</span>
                   <span>{dashboardStats.percent}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-lg font-semibold">Consenso atual</h3>
+                </div>
+                <div className="space-y-3">
+                  {internationalConsensus.length === 0 && profileConsensus.length === 0 && (
+                    <p className="text-sm text-zinc-400">Conhecimento em construção. Assim que existirem respostas suficientes, o consenso aparece aqui.</p>
+                  )}
+
+                  {internationalConsensus.map((item) => (
+                    <div key={`intl-${item.wine_profile_code}-${item.region_style}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
+                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Identidade internacional</div>
+                      <div className="font-semibold">{item.wine_profile_code} → {item.region_style}</div>
+                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
+                    </div>
+                  ))}
+
+                  {profileConsensus.map((item) => (
+                    <div key={`profile-${item.source_profile}-${item.target_profile}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
+                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Relação qualitativa</div>
+                      <div className="font-semibold">{item.source_profile} → {item.target_profile}</div>
+                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-lg font-semibold">Próxima recomendação</h3>
+                </div>
+                <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5">
+                  <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">SomAS sugere</div>
+                  <div className="text-xl font-semibold mb-2">{nextRecommendation.title}</div>
+                  <p className="text-sm text-zinc-400">{nextRecommendation.text}</p>
+                  {nextRecommendation.module && (
+                    <button
+                      type="button"
+                      onClick={() => startModule(nextRecommendation.module!)}
+                      className="mt-5 inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300"
+                    >
+                      Continuar módulo <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
