@@ -544,83 +544,35 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-async function startModule(module: KnowledgeModule) {
-  if (!expertId) return
+  async function startModule(module: KnowledgeModule) {
+    if (!expertId) return
 
-  try {
-    setLoading(true)
-    setError(null)
-    setSelectedModule(module)
+    try {
+      setLoading(true)
+      setError(null)
+      setSelectedModule(module)
 
-    const result = await startKnowledgeModule(
-      expertId,
-      module,
-      progress
-    )
+      const result = await startKnowledgeModule(
+        expertId,
+        module,
+        progress
+      )
 
-    setSessionId(result.sessionId)
-    setQuestions(result.questions)
-    setQuestionIndex(result.resumeIndex)
+      setSessionId(result.sessionId)
+      setQuestions(result.questions)
+      setQuestionIndex(result.resumeIndex)
 
-    clearAnswerState()
-
-    setStage('interview')
-  } catch (err) {
-    setError(
-      err instanceof Error
-        ? err.message
-        : 'Erro ao iniciar módulo'
-    )
-  } finally {
-    setLoading(false)
-  }
-}
-
-    const moduleQuestions = (loadedQuestions ?? []) as Question[]
-    const existingProgress = progress[module.form_phase]
-    const resumeIndex = Math.min(existingProgress?.questions_answered ?? 0, Math.max(moduleQuestions.length - 1, 0))
-
-    const { data: session, error: sessionError } = await supabase
-      .from('knowledge_sessions')
-      .insert({
-        expert_id: expertId,
-        status: 'started',
-      })
-      .select('id')
-      .single()
-
-    if (sessionError) {
-      setError(sessionError.message)
+      clearAnswerState()
+      setStage('interview')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Erro ao iniciar módulo'
+      )
+    } finally {
       setLoading(false)
-      return
     }
-
-    await supabase.from('expert_module_progress').upsert(
-      {
-        expert_id: expertId,
-        form_phase: module.form_phase,
-        status: existingProgress?.status === 'completed' ? 'completed' : 'in_progress',
-        questions_answered: existingProgress?.questions_answered ?? 0,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'expert_id,form_phase' }
-    )
-
-    await supabase.from('interview_messages').insert({
-      session_id: session.id,
-      expert_id: expertId,
-      role: 'assistant',
-      form_phase: module.form_phase,
-      knowledge_target: module.module_code,
-      message: `Início do módulo ${module.module_name}.`,
-    })
-
-    setSessionId(session.id)
-    setQuestions(moduleQuestions)
-    setQuestionIndex(resumeIndex)
-    clearAnswerState()
-    setStage('interview')
-    setLoading(false)
   }
 
   function clearAnswerState() {
