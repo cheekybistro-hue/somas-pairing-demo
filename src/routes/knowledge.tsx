@@ -15,6 +15,10 @@ import type {
   ProfileConsensus,
   Question,
 } from '@/lib/knowledge/knowledge-types'
+import {
+  loadModulesAndProgress,
+  loadConsensusInsights,
+} from '@/lib/knowledge/knowledge-service'
 
 import {
   Brain,
@@ -479,7 +483,15 @@ function KnowledgeInterview() {
     setSpecialties(expert.specialties ?? '')
     setBio(expert.bio ?? '')
 
-    await loadModulesAndProgress(expert.id)
+    const result = await loadModulesAndProgress(expert.id)
+
+setModules(result.modules)
+setProgress(result.progress)
+
+const consensus = await loadConsensusInsights()
+
+setInternationalConsensus(consensus.internationalConsensus)
+setProfileConsensus(consensus.profileConsensus)
     setStage('module')
     setLoading(false)
   }
@@ -525,7 +537,7 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-  async function loadModulesAndProgress(activeExpertId: string) {
+  async function OLD_loadModulesAndProgress(activeExpertId: string) {
     const { data: moduleData, error: moduleError } = await supabase
       .from('knowledge_modules')
       .select('*')
@@ -557,7 +569,7 @@ function KnowledgeInterview() {
     await loadConsensusInsights()
   }
 
-  async function loadConsensusInsights() {
+  async function OLD_loadConsensusInsights() {
     const { data: internationalData } = await supabase
       .from('v_profile_international_top')
       .select('*')
