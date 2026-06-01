@@ -543,25 +543,36 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-  async function startModule(module: KnowledgeModule) {
-    if (!expertId) return
+async function startModule(module: KnowledgeModule) {
+  if (!expertId) return
 
+  try {
     setLoading(true)
     setError(null)
     setSelectedModule(module)
 
-    const { data: loadedQuestions, error: questionsError } = await supabase
-      .from('knowledge_questions')
-      .select('*')
-      .eq('active', true)
-      .eq('form_phase', module.form_phase)
-      .order('priority')
+    const result = await startKnowledgeModule(
+      expertId,
+      module,
+      progress
+    )
 
-    if (questionsError) {
-      setError(questionsError.message)
-      setLoading(false)
-      return
-    }
+    setSessionId(result.sessionId)
+    setQuestions(result.questions)
+    setQuestionIndex(result.resumeIndex)
+
+    clearAnswerState()
+    setStage('interview')
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Erro ao iniciar módulo'
+    )
+  } finally {
+    setLoading(false)
+  }
+}
 
     const moduleQuestions = (loadedQuestions ?? []) as Question[]
     const existingProgress = progress[module.form_phase]
