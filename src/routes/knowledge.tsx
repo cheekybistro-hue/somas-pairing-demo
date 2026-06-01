@@ -8,6 +8,14 @@ import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
 import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSelection'
 import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPanel'
+import type {
+  KnowledgeModule,
+  Progress,
+  InternationalConsensus,
+  ProfileConsensus,
+  Question,
+} from '@/lib/knowledge/knowledge-types'
+
 import {
   Brain,
   User,
