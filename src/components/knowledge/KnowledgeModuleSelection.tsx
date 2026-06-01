@@ -1,3 +1,23 @@
+import { KnowledgeModuleCard } from './KnowledgeModuleCard'
+
+type KnowledgeModule = {
+  module_code: string
+  module_name: string
+  description: string | null
+  form_phase: string
+  sort_order: number
+  estimated_questions: number
+  active: boolean
+}
+
+type Progress = {
+  form_phase: string
+  status: string
+  questions_answered: number
+  completed_at: string | null
+  updated_at?: string | null
+}
+
 type Props = {
   moduleCards: KnowledgeModule[]
   progress: Record<string, Progress>
