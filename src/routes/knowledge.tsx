@@ -18,6 +18,7 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
+import { KnowledgeModuleCard } from '../components/knowledge/KnowledgeModuleCard'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -1091,41 +1092,14 @@ function KnowledgeInterview() {
               <p className="text-zinc-400 mb-8">Para evitar entrevistas demasiado longas, cada módulo é preenchido separadamente.</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {moduleCards.map((module) => {
-                  const p = progress[module.form_phase]
-                  const answered = p?.questions_answered ?? 0
-                  const total = module.estimated_questions || 0
-                  const percent = total > 0 ? Math.min(Math.round((answered / total) * 100), 100) : 0
-                  const disabled = total === 0
-
-                  return (
-                    <button
-                      key={module.module_code}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => startModule(module)}
-                      className={`text-left p-5 rounded-2xl border transition-all ${
-                        disabled
-                          ? 'border-zinc-800 bg-zinc-900/30 opacity-60 cursor-not-allowed'
-                          : 'border-zinc-700 bg-zinc-900/40 hover:border-amber-400/70'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <span className="text-xs font-mono text-amber-400">{module.module_code}</span>
-                        <span className="text-xs text-zinc-400">{answered} / {total}</span>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">{module.module_name}</h3>
-                      <p className="text-sm text-zinc-400 mb-4">{module.description}</p>
-                      <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
-                        <div className="h-full bg-amber-400" style={{ width: `${percent}%` }} />
-                      </div>
-                      <div className="flex justify-between mt-2 text-xs text-zinc-500">
-                        <span>{p?.status === 'completed' ? 'Completo' : p?.status === 'in_progress' ? 'Em curso' : 'Não iniciado'}</span>
-                        <span>{percent}%</span>
-                      </div>
-                    </button>
-                  )
-                })}
+                {moduleCards.map((module) => (
+                  <KnowledgeModuleCard
+                    key={module.module_code}
+                    module={module}
+                    progress={progress[module.form_phase]}
+                    onStart={startModule}
+                  />
+                ))}
               </div>
             </div>
           </div>
