@@ -6,6 +6,7 @@ import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCar
 import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
 import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
+import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSelection'
 import {
   Brain,
   User,
@@ -20,7 +21,7 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-import { KnowledgeModuleCard } from '../components/knowledge/KnowledgeModuleCard'
+
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -1080,23 +1081,11 @@ function KnowledgeInterview() {
 />
             </div>
 
-            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
-              <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
-              <p className="text-zinc-400 mb-8">Para evitar entrevistas demasiado longas, cada módulo é preenchido separadamente.</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {moduleCards.map((module) => (
-                  <KnowledgeModuleCard
-                    key={module.module_code}
-                    module={module}
-                    progress={progress[module.form_phase]}
-                    onStart={startModule}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+<KnowledgeModuleSelection
+  moduleCards={moduleCards}
+  progress={progress}
+  onStart={startModule}
+/>
 
         {stage === 'interview' && selectedModule && currentQuestion && (
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
