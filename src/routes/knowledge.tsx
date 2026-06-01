@@ -1552,17 +1552,6 @@ function ChoiceButton({ selected, onClick, children }: { selected: boolean; onCl
   )
 }
 
-function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="flex items-center gap-2 text-sm font-medium text-zinc-300 mb-2 uppercase tracking-widest">
-        <span className="text-zinc-500">{icon}</span>
-        {label}
-      </div>
-      {children}
-    </label>
-  )
-}
 
 function ErrorBox({ message }: { message: string }) {
   return (
