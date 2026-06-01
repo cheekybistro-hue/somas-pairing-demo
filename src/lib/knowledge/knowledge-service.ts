@@ -130,3 +130,101 @@ export async function startKnowledgeModule(
     resumeIndex,
   }
 }
+
+
+export async function saveKnowledgeAnswer({
+  expertId,
+  sessionId,
+  selectedModule,
+  currentQuestion,
+  questions,
+  questionIndex,
+  answeredInModule,
+  answerValue,
+  answerJson,
+  confidence,
+}: {
+  expertId: string
+  sessionId: string
+  selectedModule: KnowledgeModule
+  currentQuestion: Question
+  questions: Question[]
+  questionIndex: number
+  answeredInModule: number
+  answerValue: string
+  answerJson: Record<string, unknown>
+  confidence: number
+}) {
+  const { error: insertError } = await supabase.from('knowledge_answers').insert({
+    session_id: sessionId,
+    expert_id: expertId,
+    question_code: currentQuestion.question_code,
+    question_text: currentQuestion.question_text,
+    answer_text: answerValue,
+    answer_json: answerJson,
+    confidence,
+  })
+
+  if (insertError) {
+    throw new Error(insertError.message)
+  }
+
+  await supabase.from('interview_messages').insert({
+    session_id: sessionId,
+    expert_id: expertId,
+    role: 'expert',
+    form_phase: currentQuestion.form_phase,
+    knowledge_target: currentQuestion.question_type,
+    message: JSON.stringify(answerJson),
+  })
+
+  const newCount = Math.max(answeredInModule + 1, questionIndex + 1)
+  const isComplete = newCount >= questions.length
+
+  await supabase
+    .from('knowledge_sessions')
+    .update({
+      status: isComplete ? 'completed' : 'started',
+      questions_answered: newCount,
+      knowledge_points_generated: newCount,
+      completed_at: isComplete ? new Date().toISOString() : null,
+    })
+    .eq('id', sessionId)
+
+  await supabase.from('expert_module_progress').upsert(
+    {
+      expert_id: expertId,
+      form_phase: selectedModule.form_phase,
+      status: isComplete ? 'completed' : 'in_progress',
+      questions_answered: newCount,
+      completed_at: isComplete ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'expert_id,form_phase' }
+  )
+
+  const nextQuestion = questions[questionIndex + 1]
+
+  if (!isComplete && nextQuestion) {
+    await supabase.from('interview_messages').insert({
+      session_id: sessionId,
+      expert_id: expertId,
+      role: 'assistant',
+      form_phase: nextQuestion.form_phase,
+      knowledge_target: nextQuestion.question_type,
+      message: nextQuestion.question_text,
+    })
+  }
+
+  return {
+    newCount,
+    isComplete,
+    nextQuestion,
+    progress: {
+      form_phase: selectedModule.form_phase,
+      status: isComplete ? 'completed' : 'in_progress',
+      questions_answered: newCount,
+      completed_at: isComplete ? new Date().toISOString() : null,
+    } satisfies Progress,
+  }
+}

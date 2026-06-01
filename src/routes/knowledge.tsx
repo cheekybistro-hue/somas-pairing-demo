@@ -19,6 +19,7 @@ import {
   loadModulesAndProgress,
   loadConsensusInsights,
   startKnowledgeModule,
+  saveKnowledgeAnswer,
 } from '@/lib/knowledge/knowledge-service'
 
 import {
@@ -671,82 +672,33 @@ function KnowledgeInterview() {
       return
     }
 
-    setLoading(true)
-    setError(null)
+    try {
+      setLoading(true)
+      setError(null)
 
-    const answerJson = getAnswerJson()
+      const answerJson = getAnswerJson()
 
-    const { error: insertError } = await supabase.from('knowledge_answers').insert({
-      session_id: sessionId,
-      expert_id: expertId,
-      question_code: currentQuestion.question_code,
-      question_text: currentQuestion.question_text,
-      answer_text: answerValue,
-      answer_json: answerJson,
-      confidence,
-    })
+      const result = await saveKnowledgeAnswer({
+        expertId,
+        sessionId,
+        selectedModule,
+        currentQuestion,
+        questions,
+        questionIndex,
+        answeredInModule,
+        answerValue,
+        answerJson,
+        confidence,
+      })
 
-    if (insertError) {
-      setError(insertError.message)
-      setLoading(false)
-      return
-    }
+      setProgress((current) => ({
+        ...current,
+        [selectedModule.form_phase]: result.progress,
+      }))
 
-    await supabase.from('interview_messages').insert({
-      session_id: sessionId,
-      expert_id: expertId,
-      role: 'expert',
-      form_phase: currentQuestion.form_phase,
-      knowledge_target: currentQuestion.question_type,
-      message: JSON.stringify(answerJson),
-    })
-
-    const newCount = Math.max(answeredInModule + 1, questionIndex + 1)
-    const isComplete = newCount >= questions.length
-
-    await supabase.from('knowledge_sessions').update({
-      status: isComplete ? 'completed' : 'started',
-      questions_answered: newCount,
-      knowledge_points_generated: newCount,
-      completed_at: isComplete ? new Date().toISOString() : null,
-    }).eq('id', sessionId)
-
-    await supabase.from('expert_module_progress').upsert(
-      {
-        expert_id: expertId,
-        form_phase: selectedModule.form_phase,
-        status: isComplete ? 'completed' : 'in_progress',
-        questions_answered: newCount,
-        completed_at: isComplete ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'expert_id,form_phase' }
-    )
-
-    setProgress((current) => ({
-      ...current,
-      [selectedModule.form_phase]: {
-        form_phase: selectedModule.form_phase,
-        status: isComplete ? 'completed' : 'in_progress',
-        questions_answered: newCount,
-        completed_at: isComplete ? new Date().toISOString() : null,
-      },
-    }))
-
-    if (isComplete) {
-      setStage('done')
-    } else {
-      const nextQuestion = questions[questionIndex + 1]
-
-      if (nextQuestion) {
-        await supabase.from('interview_messages').insert({
-          session_id: sessionId,
-          expert_id: expertId,
-          role: 'assistant',
-          form_phase: nextQuestion.form_phase,
-          knowledge_target: nextQuestion.question_type,
-          message: nextQuestion.question_text,
-        })
+      if (result.isComplete) {
+        setStage('done')
+        return
       }
 
       setQuestionIndex(questionIndex + 1)
@@ -754,9 +706,15 @@ function KnowledgeInterview() {
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }, 100)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Erro ao guardar resposta'
+      )
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   function backToModules() {
