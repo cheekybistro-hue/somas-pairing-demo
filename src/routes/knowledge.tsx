@@ -483,17 +483,23 @@ function KnowledgeInterview() {
     setSpecialties(expert.specialties ?? '')
     setBio(expert.bio ?? '')
 
-    const result = await loadModulesAndProgress(expert.id)
-
-setModules(result.modules)
-setProgress(result.progress)
-
-const consensus = await loadConsensusInsights()
-
-setInternationalConsensus(consensus.internationalConsensus)
-setProfileConsensus(consensus.profileConsensus)
+    await refreshKnowledgeData(expert.id)
     setStage('module')
     setLoading(false)
+  }
+
+  async function refreshKnowledgeData(activeExpertId: string) {
+    try {
+      const result = await loadModulesAndProgress(activeExpertId)
+      setModules(result.modules)
+      setProgress(result.progress)
+
+      const consensus = await loadConsensusInsights()
+      setInternationalConsensus(consensus.internationalConsensus)
+      setProfileConsensus(consensus.profileConsensus)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de conhecimento.')
+    }
   }
 
   async function createExpertProfile() {
@@ -532,58 +538,9 @@ setProfileConsensus(consensus.profileConsensus)
     }
 
     setExpertId(expert.id)
-    await loadModulesAndProgress(expert.id)
+    await refreshKnowledgeData(expert.id)
     setStage('module')
     setLoading(false)
-  }
-
-  async function OLD_loadModulesAndProgress(activeExpertId: string) {
-    const { data: moduleData, error: moduleError } = await supabase
-      .from('knowledge_modules')
-      .select('*')
-      .eq('active', true)
-      .order('sort_order')
-
-    if (moduleError) {
-      setError(moduleError.message)
-      return
-    }
-
-    const { data: progressData, error: progressError } = await supabase
-      .from('expert_module_progress')
-      .select('*')
-      .eq('expert_id', activeExpertId)
-
-    if (progressError) {
-      setError(progressError.message)
-      return
-    }
-
-    const progressMap: Record<string, Progress> = {}
-    ;(progressData ?? []).forEach((item: Progress) => {
-      progressMap[item.form_phase] = item
-    })
-
-    setModules(moduleData ?? [])
-    setProgress(progressMap)
-    await loadConsensusInsights()
-  }
-
-  async function OLD_loadConsensusInsights() {
-    const { data: internationalData } = await supabase
-      .from('v_profile_international_top')
-      .select('*')
-      .order('votes', { ascending: false })
-      .limit(3)
-
-    const { data: profileData } = await supabase
-      .from('v_profile_consensus')
-      .select('*')
-      .order('votes', { ascending: false })
-      .limit(3)
-
-    setInternationalConsensus((internationalData ?? []) as InternationalConsensus[])
-    setProfileConsensus((profileData ?? []) as ProfileConsensus[])
   }
 
   async function startModule(module: KnowledgeModule) {
@@ -843,7 +800,7 @@ setProfileConsensus(consensus.profileConsensus)
     setQuestions([])
     setQuestionIndex(0)
     clearAnswerState()
-    if (expertId) loadModulesAndProgress(expertId)
+    if (expertId) refreshKnowledgeData(expertId)
   }
 
   const moduleCards = useMemo(() => modules, [modules])
