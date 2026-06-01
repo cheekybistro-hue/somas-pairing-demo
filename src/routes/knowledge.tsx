@@ -5,6 +5,7 @@ import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecomme
 import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
 import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
 import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
+import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
 import {
   Brain,
   User,
