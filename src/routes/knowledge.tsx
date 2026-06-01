@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
 import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
 import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
+import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import {
   Brain,
   User,
@@ -979,45 +980,35 @@ function KnowledgeInterview() {
           </div>
         )}
 
-        {stage === 'profile' && (
-          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-light mb-2">Completar perfil</h2>
-            <p className="text-zinc-400 mb-8">Estes dados ajudam a criar a tua persona de conhecimento.</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field label="Nome *" icon={<User className="w-4 h-4" />}><input value={name} onChange={(e) => setName(e.target.value)} className="input" /></Field>
-              <Field label="Nome público" icon={<Sparkles className="w-4 h-4" />}><input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="input" /></Field>
-              <Field label="Email" icon={<User className="w-4 h-4" />}><input value={email} onChange={(e) => setEmail(e.target.value)} className="input" type="email" /></Field>
-              <Field label="Função" icon={<Briefcase className="w-4 h-4" />}>
-                <select value={role} onChange={(e) => setRole(e.target.value)} className="input">
-                  <option value="">Selecionar…</option>
-                  {roles.map((r) => <option key={r}>{r}</option>)}
-                </select>
-              </Field>
-              <Field label="Organização" icon={<Briefcase className="w-4 h-4" />}><input value={organization} onChange={(e) => setOrganization(e.target.value)} className="input" /></Field>
-              <Field label="Experiência" icon={<Sparkles className="w-4 h-4" />}>
-                <select value={yearsExperience} onChange={(e) => setYearsExperience(e.target.value)} className="input">
-                  <option value="">Selecionar…</option>
-                  {experienceLevels.map((e) => <option key={e}>{e}</option>)}
-                </select>
-              </Field>
-              <Field label="País" icon={<MapPin className="w-4 h-4" />}><input value={country} onChange={(e) => setCountry(e.target.value)} className="input" /></Field>
-              <Field label="Região" icon={<MapPin className="w-4 h-4" />}><input value={region} onChange={(e) => setRegion(e.target.value)} className="input" /></Field>
-            </div>
-
-            <div className="mt-5"><Field label="Especialidades" icon={<Sparkles className="w-4 h-4" />}><textarea value={specialties} onChange={(e) => setSpecialties(e.target.value)} className="input min-h-[90px]" /></Field></div>
-            <div className="mt-5"><Field label="Nota biográfica curta" icon={<User className="w-4 h-4" />}><textarea value={bio} onChange={(e) => setBio(e.target.value)} className="input min-h-[90px]" /></Field></div>
-
-            {error && <ErrorBox message={error} />}
-
-            <div className="mt-8 flex justify-end">
-              <button onClick={createExpertProfile} disabled={loading} className="btn-primary">
-                {loading ? 'A guardar…' : 'Guardar perfil'}
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
+{stage === 'profile' && (
+  <KnowledgeProfileForm
+    name={name}
+    displayName={displayName}
+    email={email}
+    role={role}
+    organization={organization}
+    yearsExperience={yearsExperience}
+    country={country}
+    region={region}
+    specialties={specialties}
+    bio={bio}
+    roles={roles}
+    experienceLevels={experienceLevels}
+    error={error}
+    loading={loading}
+    onNameChange={setName}
+    onDisplayNameChange={setDisplayName}
+    onEmailChange={setEmail}
+    onRoleChange={setRole}
+    onOrganizationChange={setOrganization}
+    onYearsExperienceChange={setYearsExperience}
+    onCountryChange={setCountry}
+    onRegionChange={setRegion}
+    onSpecialtiesChange={setSpecialties}
+    onBioChange={setBio}
+    onSubmit={createExpertProfile}
+  />
+)}
 
         {stage === 'module' && (
           <div className="max-w-5xl mx-auto space-y-6">
@@ -1561,17 +1552,6 @@ function ChoiceButton({ selected, onClick, children }: { selected: boolean; onCl
   )
 }
 
-function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="flex items-center gap-2 text-sm font-medium text-zinc-300 mb-2 uppercase tracking-widest">
-        <span className="text-zinc-500">{icon}</span>
-        {label}
-      </div>
-      {children}
-    </label>
-  )
-}
 
 function ErrorBox({ message }: { message: string }) {
   return (
