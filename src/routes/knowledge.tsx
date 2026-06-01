@@ -8,6 +8,18 @@ import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
 import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSelection'
 import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPanel'
+import type {
+  KnowledgeModule,
+  Progress,
+  InternationalConsensus,
+  ProfileConsensus,
+  Question,
+} from '@/lib/knowledge/knowledge-types'
+import {
+  loadModulesAndProgress,
+  loadConsensusInsights,
+} from '@/lib/knowledge/knowledge-service'
+
 import {
   Brain,
   User,
@@ -29,47 +41,6 @@ export const Route = createFileRoute('/knowledge')({
 })
 type Stage = 'auth' | 'profile' | 'module' | 'interview' | 'done'
 type AuthMode = 'login' | 'signup'
-
-type KnowledgeModule = {
-  module_code: string
-  module_name: string
-  description: string | null
-  form_phase: string
-  sort_order: number
-  estimated_questions: number
-  active: boolean
-}
-
-type Progress = {
-  form_phase: string
-  status: string
-  questions_answered: number
-  completed_at: string | null
-  updated_at?: string | null
-}
-
-type InternationalConsensus = {
-  wine_profile_code: string
-  region_style: string
-  votes: number
-}
-
-type ProfileConsensus = {
-  source_profile: string
-  target_profile: string
-  votes: number
-}
-
-type Question = {
-  question_code: string
-  form_phase: string
-  question_type: string
-  food_archetype_code: string | null
-  wine_profile_code: string | null
-  question_text: string
-  helper_text: string | null
-  priority: number
-}
 
 const roles = [
   'Sommelier',
@@ -512,9 +483,23 @@ function KnowledgeInterview() {
     setSpecialties(expert.specialties ?? '')
     setBio(expert.bio ?? '')
 
-    await loadModulesAndProgress(expert.id)
+    await refreshKnowledgeData(expert.id)
     setStage('module')
     setLoading(false)
+  }
+
+  async function refreshKnowledgeData(activeExpertId: string) {
+    try {
+      const result = await loadModulesAndProgress(activeExpertId)
+      setModules(result.modules)
+      setProgress(result.progress)
+
+      const consensus = await loadConsensusInsights()
+      setInternationalConsensus(consensus.internationalConsensus)
+      setProfileConsensus(consensus.profileConsensus)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de conhecimento.')
+    }
   }
 
   async function createExpertProfile() {
@@ -553,58 +538,9 @@ function KnowledgeInterview() {
     }
 
     setExpertId(expert.id)
-    await loadModulesAndProgress(expert.id)
+    await refreshKnowledgeData(expert.id)
     setStage('module')
     setLoading(false)
-  }
-
-  async function loadModulesAndProgress(activeExpertId: string) {
-    const { data: moduleData, error: moduleError } = await supabase
-      .from('knowledge_modules')
-      .select('*')
-      .eq('active', true)
-      .order('sort_order')
-
-    if (moduleError) {
-      setError(moduleError.message)
-      return
-    }
-
-    const { data: progressData, error: progressError } = await supabase
-      .from('expert_module_progress')
-      .select('*')
-      .eq('expert_id', activeExpertId)
-
-    if (progressError) {
-      setError(progressError.message)
-      return
-    }
-
-    const progressMap: Record<string, Progress> = {}
-    ;(progressData ?? []).forEach((item: Progress) => {
-      progressMap[item.form_phase] = item
-    })
-
-    setModules(moduleData ?? [])
-    setProgress(progressMap)
-    await loadConsensusInsights()
-  }
-
-  async function loadConsensusInsights() {
-    const { data: internationalData } = await supabase
-      .from('v_profile_international_top')
-      .select('*')
-      .order('votes', { ascending: false })
-      .limit(3)
-
-    const { data: profileData } = await supabase
-      .from('v_profile_consensus')
-      .select('*')
-      .order('votes', { ascending: false })
-      .limit(3)
-
-    setInternationalConsensus((internationalData ?? []) as InternationalConsensus[])
-    setProfileConsensus((profileData ?? []) as ProfileConsensus[])
   }
 
   async function startModule(module: KnowledgeModule) {
@@ -864,7 +800,7 @@ function KnowledgeInterview() {
     setQuestions([])
     setQuestionIndex(0)
     clearAnswerState()
-    if (expertId) loadModulesAndProgress(expertId)
+    if (expertId) refreshKnowledgeData(expertId)
   }
 
   const moduleCards = useMemo(() => modules, [modules])
