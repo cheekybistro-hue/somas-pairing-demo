@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
+import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
+import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
 import {
   Brain,
   User,
@@ -20,7 +23,6 @@ import { KnowledgeModuleCard } from '../components/knowledge/KnowledgeModuleCard
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
 })
-
 type Stage = 'auth' | 'profile' | 'module' | 'interview' | 'done'
 type AuthMode = 'login' | 'signup'
 
@@ -1034,19 +1036,19 @@ function KnowledgeInterview() {
               </div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<BarChart3 className="w-5 h-5" />}
                   label="Conhecimento contribuído"
                   value={`${dashboardStats.totalAnswered} / ${dashboardStats.totalQuestions}`}
                   helper={`${dashboardStats.percent}% concluído`}
                 />
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<Target className="w-5 h-5" />}
                   label="Módulos"
                   value={`${dashboardStats.modulesCompleted} completos`}
                   helper={`${dashboardStats.modulesStarted} iniciados`}
                 />
-                <StatCard
+                <KnowledgeStatsCard
                   icon={<Activity className="w-5 h-5" />}
                   label="Última atividade"
                   value={dashboardStats.lastUpdated ? 'Registada' : 'Sem atividade'}
@@ -1066,54 +1068,24 @@ function KnowledgeInterview() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-semibold">Consenso atual</h3>
-                </div>
-                <div className="space-y-3">
-                  {internationalConsensus.length === 0 && profileConsensus.length === 0 && (
-                    <p className="text-sm text-zinc-400">Conhecimento em construção. Assim que existirem respostas suficientes, o consenso aparece aqui.</p>
-                  )}
 
-                  {internationalConsensus.map((item) => (
-                    <div key={`intl-${item.wine_profile_code}-${item.region_style}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
-                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Identidade internacional</div>
-                      <div className="font-semibold">{item.wine_profile_code} → {item.region_style}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
-                    </div>
-                  ))}
+              <KnowledgeConsensusCard
+  internationalConsensus={internationalConsensus.map((item) => ({
+    label: `${item.wine_profile_code} → ${item.region_style}`,
+    value: item.region_style,
+    votes: item.votes,
+  }))}
+  profileConsensus={profileConsensus.map((item) => ({
+    label: `${item.source_profile} → ${item.target_profile}`,
+    value: item.target_profile,
+    votes: item.votes,
+  }))}
+/>
 
-                  {profileConsensus.map((item) => (
-                    <div key={`profile-${item.source_profile}-${item.target_profile}`} className="rounded-xl border border-zinc-700 bg-zinc-900/40 p-4">
-                      <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">Relação qualitativa</div>
-                      <div className="font-semibold">{item.source_profile} → {item.target_profile}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{item.votes} voto(s) de especialista</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-semibold">Próxima recomendação</h3>
-                </div>
-                <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5">
-                  <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">SomAS sugere</div>
-                  <div className="text-xl font-semibold mb-2">{nextRecommendation.title}</div>
-                  <p className="text-sm text-zinc-400">{nextRecommendation.text}</p>
-                  {nextRecommendation.module && (
-                    <button
-                      type="button"
-                      onClick={() => startModule(nextRecommendation.module!)}
-                      className="mt-5 inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300"
-                    >
-                      Continuar módulo <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
+<KnowledgeRecommendationCard
+  recommendation={nextRecommendation}
+  onContinue={startModule}
+/>
             </div>
 
             <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
@@ -1598,20 +1570,6 @@ function Field({ label, icon, children }: { label: string; icon: React.ReactNode
       </div>
       {children}
     </label>
-  )
-}
-
-
-function StatCard({ icon, label, value, helper }: { icon: ReactNode; label: string; value: string; helper: string }) {
-  return (
-    <div className="rounded-2xl border border-zinc-700 bg-zinc-900/40 p-5">
-      <div className="flex items-center gap-2 text-amber-400 mb-3">
-        {icon}
-        <span className="text-xs uppercase tracking-widest text-zinc-400">{label}</span>
-      </div>
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className="text-sm text-zinc-500 mt-1">{helper}</div>
-    </div>
   )
 }
 
