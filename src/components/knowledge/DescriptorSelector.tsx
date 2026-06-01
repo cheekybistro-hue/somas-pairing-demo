@@ -1,4 +1,6 @@
-function DescriptorSelector({
+import { Brain } from 'lucide-react'
+import { Dispatch, SetStateAction } from 'react'
+export default function DescriptorSelector({
   label,
   selectedDescriptors,
   setSelectedDescriptors,
