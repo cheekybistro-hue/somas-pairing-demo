@@ -1085,7 +1085,8 @@ function KnowledgeInterview() {
 <KnowledgeRecommendationCard
   recommendation={nextRecommendation}
   onContinue={startModule}
-</div>
+/>
+            </div>
 
             <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
               <h2 className="text-2xl font-light mb-2">Escolher módulo de conhecimento</h2>
