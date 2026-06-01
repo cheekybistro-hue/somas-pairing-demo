@@ -1086,6 +1086,8 @@ function KnowledgeInterview() {
   progress={progress}
   onStart={startModule}
 />
+          </div>
+        )}
 
         {stage === 'interview' && selectedModule && currentQuestion && (
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
