@@ -1,8 +1,11 @@
 import { supabase } from '@/lib/supabase'
+
 import type {
+  KnowledgeModule,
   Progress,
   InternationalConsensus,
   ProfileConsensus,
+  Question,
 } from './knowledge-types'
 
 export async function loadModulesAndProgress(activeExpertId: string) {
@@ -57,11 +60,6 @@ export async function loadConsensusInsights() {
       (profileData ?? []) as ProfileConsensus[],
   }
 }
-import type {
-  KnowledgeModule,
-  Progress,
-  Question,
-} from './knowledge-types'
 
 export async function startKnowledgeModule(
   expertId: string,
@@ -80,7 +78,6 @@ export async function startKnowledgeModule(
   }
 
   const moduleQuestions = (loadedQuestions ?? []) as Question[]
-
   const existingProgress = progress[module.form_phase]
 
   const resumeIndex = Math.min(
