@@ -1,4 +1,4 @@
-type KnowledgeModule = {
+export type KnowledgeModule = {
   module_code: string
   module_name: string
   description: string | null
@@ -8,7 +8,7 @@ type KnowledgeModule = {
   active: boolean
 }
 
-type Progress = {
+export type Progress = {
   form_phase: string
   status: string
   questions_answered: number
@@ -16,19 +16,19 @@ type Progress = {
   updated_at?: string | null
 }
 
-type InternationalConsensus = {
+export type InternationalConsensus = {
   wine_profile_code: string
   region_style: string
   votes: number
 }
 
-type ProfileConsensus = {
+export type ProfileConsensus = {
   source_profile: string
   target_profile: string
   votes: number
 }
 
-type Question = {
+export type Question = {
   question_code: string
   form_phase: string
   question_type: string
