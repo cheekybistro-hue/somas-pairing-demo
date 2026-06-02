@@ -37,14 +37,59 @@ function AdminExpertsPage() {
     }
   }
 
+  const uniqueExperts = useMemo(() => {
+    const map = new Map()
+
+    profiles.forEach((profile) => {
+      const key =
+        profile.email ??
+        profile.display_name ??
+        profile.id
+
+      const existing = map.get(key)
+
+      if (!existing) {
+        map.set(key, profile)
+        return
+      }
+
+      const existingDate = new Date(
+        existing.created_at ?? 0
+      ).getTime()
+
+      const currentDate = new Date(
+        profile.created_at ?? 0
+      ).getTime()
+
+      if (currentDate > existingDate) {
+        map.set(key, profile)
+      }
+    })
+
+    return Array.from(map.values())
+  }, [profiles])
+
+  const roleStats = useMemo(() => {
+    const stats: Record<string, number> = {}
+
+    uniqueExperts.forEach((expert) => {
+      const role =
+        expert.role?.trim() || 'Outros'
+
+      stats[role] = (stats[role] ?? 0) + 1
+    })
+
+    return stats
+  }, [uniqueExperts])
+
   const stats = useMemo(() => {
     return {
-      totalExperts: profiles.length,
-      activeExperts: profiles.filter(
+      totalExperts: uniqueExperts.length,
+      activeExperts: uniqueExperts.filter(
         (p) => p.is_active !== false
       ).length,
     }
-  }, [profiles])
+  }, [uniqueExperts])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
@@ -56,11 +101,11 @@ function AdminExpertsPage() {
           </p>
 
           <h1 className="text-4xl font-light">
-            Expert Ranking
+            Expert Insights
           </h1>
 
           <p className="text-zinc-400 mt-3">
-            Especialistas que contribuem para a base de conhecimento.
+            Rede de especialistas que contribuem para a construção do conhecimento SomAS.
           </p>
         </header>
 
@@ -70,11 +115,11 @@ function AdminExpertsPage() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <StatCard
             label="Especialistas"
             value={stats.totalExperts}
-            helper="Perfis registados"
+            helper="Perfis únicos"
           />
 
           <StatCard
@@ -82,6 +127,17 @@ function AdminExpertsPage() {
             value={stats.activeExperts}
             helper="Perfis ativos"
           />
+
+          {Object.entries(roleStats).map(
+            ([role, count]) => (
+              <StatCard
+                key={role}
+                label={role}
+                value={count}
+                helper="Especialistas"
+              />
+            )
+          )}
         </section>
 
         <section className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-6">
@@ -92,7 +148,7 @@ function AdminExpertsPage() {
               </h2>
 
               <p className="text-zinc-500 text-sm mt-1">
-                {profiles.length} especialistas
+                {uniqueExperts.length} especialistas únicos
               </p>
             </div>
 
@@ -119,7 +175,7 @@ function AdminExpertsPage() {
                     </th>
 
                     <th className="text-left p-3">
-                      Especialidade
+                      Função
                     </th>
 
                     <th className="text-left p-3">
@@ -127,7 +183,11 @@ function AdminExpertsPage() {
                     </th>
 
                     <th className="text-left p-3">
-                      Nível
+                      Organização
+                    </th>
+
+                    <th className="text-left p-3">
+                      Experiência
                     </th>
 
                     <th className="text-left p-3">
@@ -137,21 +197,18 @@ function AdminExpertsPage() {
                 </thead>
 
                 <tbody>
-                  {profiles.map((profile) => (
+                  {uniqueExperts.map((profile) => (
                     <tr
                       key={profile.id}
                       className="border-b border-zinc-800 hover:bg-zinc-900/50"
                     >
                       <td className="p-3 font-semibold">
                         {profile.display_name ??
-                          profile.name ??
                           'Sem nome'}
                       </td>
 
                       <td className="p-3">
-                        {profile.specialty ??
-                          profile.expertise ??
-                          '-'}
+                        {profile.role ?? '-'}
                       </td>
 
                       <td className="p-3">
@@ -159,8 +216,13 @@ function AdminExpertsPage() {
                       </td>
 
                       <td className="p-3">
-                        {profile.experience_level ??
-                          '-'}
+                        {profile.organization ?? '-'}
+                      </td>
+
+                      <td className="p-3">
+                        {profile.years_experience
+                          ? `${profile.years_experience} anos`
+                          : '-'}
                       </td>
 
                       <td className="p-3">
@@ -173,7 +235,7 @@ function AdminExpertsPage() {
                 </tbody>
               </table>
 
-              {profiles.length === 0 && (
+              {uniqueExperts.length === 0 && (
                 <div className="py-12 text-center text-zinc-500">
                   Nenhum especialista encontrado.
                 </div>
