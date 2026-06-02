@@ -1,6 +1,6 @@
 export type NormalizedKnowledgeAnswer = {
   questionCode: string
-  questionType?: string
+  questionType: string
 
   wineProfileCode?: string
   foodArchetypeCode?: string
@@ -14,16 +14,44 @@ export type NormalizedKnowledgeAnswer = {
   rawAnswerText?: string
 }
 
-export function normalizeKnowledgeAnswer(answer: any): NormalizedKnowledgeAnswer {
+function inferQuestionType(answer: any, json: any): string {
+  if (json.question_type) {
+    return json.question_type
+  }
+
+  const code = answer.question_code ?? ''
+
+  if (code.includes('_PAIRING')) {
+    return 'pairing_choice'
+  }
+
+  if (code.includes('_INTERNATIONAL_IDENTITY')) {
+    return 'international_identity'
+  }
+
+  if (code.includes('_NATIONAL_REGION')) {
+    return 'national_region'
+  }
+
+  if (code.includes('_QUALITATIVE_RELATIONSHIP')) {
+    return 'qualitative_relationship'
+  }
+
+  return 'unknown'
+}
+
+export function normalizeKnowledgeAnswer(
+  answer: any
+): NormalizedKnowledgeAnswer {
   const json = answer.answer_json ?? {}
 
   return {
     questionCode: answer.question_code,
 
-    questionType:
-      json.question_type ??
-      answer.question_type ??
-      undefined,
+    questionType: inferQuestionType(
+      answer,
+      json
+    ),
 
     wineProfileCode:
       json.wine_profile_code ??
@@ -38,12 +66,11 @@ export function normalizeKnowledgeAnswer(answer: any): NormalizedKnowledgeAnswer
         ? json.descriptors
         : [],
 
-    confidence:
-      Number(
-        json.confidence ??
-        answer.confidence ??
-        1
-      ),
+    confidence: Number(
+      json.confidence ??
+      answer.confidence ??
+      1
+    ),
 
     reason:
       json.reason ??
@@ -58,5 +85,7 @@ export function normalizeKnowledgeAnswer(answer: any): NormalizedKnowledgeAnswer
 export function normalizeKnowledgeAnswers(
   answers: any[]
 ): NormalizedKnowledgeAnswer[] {
-  return answers.map(normalizeKnowledgeAnswer)
+  return answers.map(
+    normalizeKnowledgeAnswer
+  )
 }
