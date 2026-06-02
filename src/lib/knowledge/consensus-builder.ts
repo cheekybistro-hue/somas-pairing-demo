@@ -7,11 +7,15 @@ export function buildKnowledgeConsensus(
   const normalized =
     normalizeKnowledgeAnswers(answers)
 
+  const validAnswers = normalized.filter(
+    (answer) =>
+      answer.questionType !== 'unknown'
+  )
+
   return calculateConsensus(
-    normalized.map((answer) => ({
+    validAnswers.map((answer) => ({
       question_code: answer.questionCode,
-      question_type:
-        answer.questionType ?? 'unknown',
+      question_type: answer.questionType,
       answer_text:
         answer.wineProfileCode ??
         answer.rawAnswerText ??
