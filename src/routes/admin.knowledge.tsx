@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
-
 import { loadConsensusSnapshot } from '../lib/knowledge/consensus-persistence'
+import {
+  buildTrainingDatasetJson,
+  buildTrainingDatasetJsonl,
+} from '../lib/knowledge/training-dataset'
 
 export const Route = createFileRoute('/admin/knowledge')({
   component: AdminKnowledgeDashboard,
