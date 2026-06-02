@@ -219,11 +219,9 @@ function AdminExpertsPage() {
                         {profile.organization ?? '-'}
                       </td>
 
-                      <td className="p-3">
-                        {profile.years_experience
-                          ? `${profile.years_experience} anos`
-                          : '-'}
-                      </td>
+<td className="p-3">
+  {profile.years_experience ?? '-'}
+</td>
 
                       <td className="p-3">
                         {profile.is_active === false
