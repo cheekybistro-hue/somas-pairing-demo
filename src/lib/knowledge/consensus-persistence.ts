@@ -33,7 +33,7 @@ export async function saveConsensusSnapshot(
         updated_at: new Date().toISOString(),
       })),
       {
-        onConflict: 'question_code',
+        onConflict: 'question_code,question_type',
       }
     )
 
