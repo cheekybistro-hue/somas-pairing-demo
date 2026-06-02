@@ -16,8 +16,11 @@ export function buildKnowledgeConsensus(
     validAnswers.map((answer) => ({
       question_code: answer.questionCode,
       question_type: answer.questionType,
-     answer_text:
-  extractSemanticAnswer(answer),
+   answer_text:
+      answer.rawAnswerText ??
+      answer.wineProfileCode ??
+      answer.foodArchetypeCode ??
+     'unknown',
       answer_json: null,
       confidence: answer.confidence,
     }))
