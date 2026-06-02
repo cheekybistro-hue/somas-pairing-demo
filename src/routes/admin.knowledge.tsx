@@ -87,6 +87,67 @@ function AdminKnowledgeDashboard() {
     }
   }, [consensus])
 
+  function exportJson() {
+    const blob = new Blob(
+      [JSON.stringify(filteredConsensus, null, 2)],
+      { type: 'application/json' }
+    )
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = 'knowledge-consensus.json'
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
+
+  function exportCsv() {
+    const headers = [
+      'question_code',
+      'question_type',
+      'winning_answer',
+      'votes',
+      'total_votes',
+      'confidence_score',
+      'updated_at',
+    ]
+
+    const escapeCsvValue = (value: any) =>
+      `"${String(value ?? '').replaceAll('"', '""')}"`
+
+    const rows = filteredConsensus.map((item) =>
+      [
+        item.question_code,
+        item.question_type,
+        item.winning_answer,
+        item.votes,
+        item.total_votes,
+        item.confidence_score,
+        item.updated_at,
+      ]
+        .map(escapeCsvValue)
+        .join(',')
+    )
+
+    const csv = [headers.join(','), ...rows].join('\n')
+
+    const blob = new Blob(
+      [csv],
+      { type: 'text/csv;charset=utf-8;' }
+    )
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = 'knowledge-consensus.csv'
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -155,13 +216,29 @@ function AdminKnowledgeDashboard() {
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col md:flex-row gap-3">
               <input
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Filtrar por questão, tipo ou resposta..."
                 className="bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-sm min-w-[320px]"
               />
+
+              <button
+                type="button"
+                onClick={exportCsv}
+                className="px-4 py-2 rounded-xl border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 text-sm"
+              >
+                Export CSV
+              </button>
+
+              <button
+                type="button"
+                onClick={exportJson}
+                className="px-4 py-2 rounded-xl border border-sky-500 text-sky-400 hover:bg-sky-500/10 text-sm"
+              >
+                Export JSON
+              </button>
 
               <button
                 type="button"
