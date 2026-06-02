@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
-
 import { loadConsensusSnapshot } from '../lib/knowledge/consensus-persistence'
+import {
+  buildTrainingDatasetJson,
+  buildTrainingDatasetJsonl,
+} from '../lib/knowledge/training-dataset'
 
 export const Route = createFileRoute('/admin/knowledge')({
   component: AdminKnowledgeDashboard,
@@ -148,6 +151,53 @@ function AdminKnowledgeDashboard() {
     URL.revokeObjectURL(url)
   }
 
+  function exportTrainingJson() {
+  const json = buildTrainingDatasetJson(
+    filteredConsensus
+  )
+
+  const blob = new Blob(
+    [json],
+    {
+      type: 'application/json',
+    }
+  )
+
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download =
+    'knowledge-training-dataset.json'
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
+
+function exportTrainingJsonl() {
+  const jsonl =
+    buildTrainingDatasetJsonl(
+      filteredConsensus
+    )
+
+  const blob = new Blob(
+    [jsonl],
+    {
+      type: 'application/json',
+    }
+  )
+
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download =
+    'knowledge-training-dataset.jsonl'
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -240,6 +290,22 @@ function AdminKnowledgeDashboard() {
                 Export JSON
               </button>
 
+<button
+  type="button"
+  onClick={exportTrainingJson}
+  className="px-4 py-2 rounded-xl border border-violet-500 text-violet-400 hover:bg-violet-500/10 text-sm"
+>
+  Export Training JSON
+</button>
+
+<button
+  type="button"
+  onClick={exportTrainingJsonl}
+  className="px-4 py-2 rounded-xl border border-fuchsia-500 text-fuchsia-400 hover:bg-fuchsia-500/10 text-sm"
+>
+  Export Training JSONL
+</button>
+              
               <button
                 type="button"
                 onClick={loadData}
@@ -337,6 +403,7 @@ function AdminKnowledgeDashboard() {
     </div>
   )
 }
+
 
 function StatCard({
   label,
