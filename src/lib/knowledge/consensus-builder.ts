@@ -1,6 +1,6 @@
 import { normalizeKnowledgeAnswers } from './answer-normalizer'
 import { calculateConsensus } from './consensus-engine'
-
+import { extractSemanticAnswer } from './answer-semantics'
 export function buildKnowledgeConsensus(
   answers: any[]
 ) {
@@ -16,10 +16,8 @@ export function buildKnowledgeConsensus(
     validAnswers.map((answer) => ({
       question_code: answer.questionCode,
       question_type: answer.questionType,
-      answer_text:
-        answer.wineProfileCode ??
-        answer.rawAnswerText ??
-        'unknown',
+     answer_text:
+  extractSemanticAnswer(answer),
       answer_json: null,
       confidence: answer.confidence,
     }))
