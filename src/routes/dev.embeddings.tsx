@@ -3,10 +3,12 @@ import { useState } from 'react'
 
 import { runEmbeddingPreparationJob } from '../lib/knowledge/embedding-job'
 import { loadKnowledgeEmbeddings } from '../lib/knowledge/embedding-persistence'
+import { runEmbeddingGenerationJob } from '../lib/knowledge/embedding-generator'
 
 export const Route = createFileRoute('/dev/embeddings')({
   component: DevEmbeddingsPage,
 })
+
 
 function DevEmbeddingsPage() {
   const [loading, setLoading] = useState(false)
@@ -14,6 +16,28 @@ function DevEmbeddingsPage() {
   const [embeddings, setEmbeddings] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
 
+async function generateEmbeddings() {
+  try {
+    setLoading(true)
+    setError(null)
+
+    const generationResult = await runEmbeddingGenerationJob()
+
+    setResult(generationResult)
+
+    const data = await loadKnowledgeEmbeddings()
+
+    setEmbeddings(data)
+  } catch (err: any) {
+    setError(
+      err.message ??
+        'Erro ao gerar embeddings'
+    )
+  } finally {
+    setLoading(false)
+  }
+}
+  
   async function runJob() {
     try {
       setLoading(true)
@@ -66,7 +90,14 @@ function DevEmbeddingsPage() {
             ? 'Running...'
             : 'Run Embedding Preparation Job'}
         </button>
-
+<button
+  type="button"
+  onClick={generateEmbeddings}
+  disabled={loading}
+  className="px-5 py-3 rounded-xl border border-violet-400 text-violet-400 hover:bg-violet-400/10"
+>
+  {loading ? 'Running...' : 'Generate Embeddings'}
+</button>
         {error && (
           <div className="p-4 rounded-xl border border-red-800 bg-red-950/40 text-red-300">
             {error}
