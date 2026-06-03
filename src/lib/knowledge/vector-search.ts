@@ -52,19 +52,21 @@ export async function searchKnowledge(
 
   return embeddings
     .filter(
-      (item) =>
-        item.status === 'completed' &&
-        Array.isArray(item.embedding)
-    )
+  (item) =>
+    item.status === 'completed' &&
+    item.embedding
+)
     .map((item) => ({
       id: item.id,
       source: item.source,
       sourceId: item.source_id,
       content: item.content,
-      score: cosineSimilarity(
-        queryEmbedding.embedding,
-        item.embedding
-      ),
+score: cosineSimilarity(
+  queryEmbedding.embedding,
+  Array.isArray(item.embedding)
+    ? item.embedding
+    : JSON.parse(item.embedding)
+),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
