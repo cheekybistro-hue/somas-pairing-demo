@@ -1,24 +1,20 @@
-import {
+import type {
   KnowledgeEmbeddingRequest,
   KnowledgeEmbeddingRecord,
-  createPendingEmbedding,
 } from './embedding-types'
+
+import { createPendingEmbedding } from './embedding-types'
+import { buildRagDocuments } from './rag-documents'
 
 export function buildConsensusEmbeddingRequests(
   consensus: any[]
 ): KnowledgeEmbeddingRequest[] {
-  return consensus.map((item) => ({
+  const documents = buildRagDocuments(consensus)
+
+  return documents.map((document) => ({
     source: 'expert_consensus',
-
-    sourceId: `${item.question_code}:${item.question_type}`,
-
-    content: [
-      item.question_code,
-      item.question_type,
-      item.winning_answer,
-    ]
-      .filter(Boolean)
-      .join(' | '),
+    sourceId: document.id,
+    content: document.content,
   }))
 }
 
@@ -37,9 +33,7 @@ export function createPendingEmbeddings(
 export function estimateEmbeddingTokens(
   content: string
 ) {
-  return Math.ceil(
-    content.length / 4
-  )
+  return Math.ceil(content.length / 4)
 }
 
 export function estimateEmbeddingCost(
@@ -47,10 +41,7 @@ export function estimateEmbeddingCost(
 ) {
   return requests.reduce(
     (sum, request) =>
-      sum +
-      estimateEmbeddingTokens(
-        request.content
-      ),
+      sum + estimateEmbeddingTokens(request.content),
     0
   )
 }
