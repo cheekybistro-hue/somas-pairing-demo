@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { searchKnowledge } from '../lib/knowledge/vector-search'
-
+import { buildKnowledgeAnswer } from '../lib/knowledge/answer-builder'
 export const Route = createFileRoute('/dev/answer')({
   component: DevAnswerPage,
 })
@@ -31,16 +31,11 @@ function DevAnswerPage() {
 
       setSources(results)
 
-      const generatedAnswer =
-        results.length === 0
-          ? 'Não encontrei conhecimento relevante.'
-          : [
-              'Resposta baseada no conhecimento disponível:',
-              '',
-              ...results.map(
-                (item) => `• ${item.content}`
-              ),
-            ].join('\n')
+const generatedAnswer =
+  buildKnowledgeAnswer(
+    question,
+    results
+  )
 
       setAnswer(generatedAnswer)
     } catch (err: any) {
