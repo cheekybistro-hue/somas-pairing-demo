@@ -1,3 +1,5 @@
+import { OpenRouterEmbeddingProvider } from './openrouter-embedding-provider'
+
 export type EmbeddingProviderName =
   | 'mock'
   | 'openrouter'
@@ -61,7 +63,9 @@ export function createEmbeddingProvider(
   if (provider === 'mock') {
     return new MockEmbeddingProvider()
   }
-
+if (provider === 'openrouter') {
+  return new OpenRouterEmbeddingProvider()
+}
   throw new Error(
     `Embedding provider not implemented yet: ${provider}`
   )
