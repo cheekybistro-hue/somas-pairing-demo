@@ -365,7 +365,40 @@ function KnowledgeInterview() {
 ]
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
-  const story = getKnowledgeFormStory('pairing')
+function getStoryPhaseForModule(module: KnowledgeModule | null) {
+  if (!module) return null
+
+  const code = module.module_code?.toUpperCase()
+  const name = module.module_name?.toLowerCase()
+  const phase = module.form_phase?.toLowerCase()
+
+  if (code === 'FORM1' || phase.includes('pairing')) {
+    return 'pairing'
+  }
+
+  if (
+    code === 'FORM2' ||
+    code === 'FORM3' ||
+    code === 'FORM21' ||
+    name.includes('identidade') ||
+    name.includes('relações')
+  ) {
+    return 'wine_identity'
+  }
+
+  if (name.includes('aroma')) {
+    return 'wine_aromatic'
+  }
+
+  if (name.includes('dish') || name.includes('prato')) {
+    return 'dish_intelligence'
+  }
+
+  return null
+}
+
+const storyPhase = getStoryPhaseForModule(selectedModule)
+const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
  
   
   useEffect(() => {
@@ -809,14 +842,7 @@ function KnowledgeInterview() {
       <div className="max-w-5xl mx-auto px-4 py-12">
         <header className="text-center mb-10 relative">
            {story && (
-  <KnowledgeStoryCard
-    title={story.title}
-    subtitle={story.subtitle}
-    whyItMatters={story.whyItMatters}
-    howToAnswer={story.howToAnswer}
-    somasImpact={story.somasImpact}
-  />
-)}
+
           {userId && (
             <button
               type="button"
@@ -980,7 +1006,21 @@ function KnowledgeInterview() {
 />
           </div>
         )}
+<div className="max-w-5xl mx-auto space-y-6">
+  {story && (
+    <KnowledgeStoryCard
+      title={story.title}
+      subtitle={story.subtitle}
+      whyItMatters={story.whyItMatters}
+      howToAnswer={story.howToAnswer}
+      somasImpact={story.somasImpact}
+    />
+  )}
 
+  <KnowledgeInterviewPanel
+    ...
+  />
+</div>
 {stage === 'interview' && selectedModule && currentQuestion && (
   <KnowledgeInterviewPanel
     selectedModule={selectedModule}
