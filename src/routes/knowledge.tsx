@@ -8,6 +8,9 @@ import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
 import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSelection'
 import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPanel'
+import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
+import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
+
 import type {
   KnowledgeModule,
   Progress,
@@ -345,7 +348,10 @@ function KnowledgeInterview() {
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
   const answeredInModule = currentProgress?.questions_answered ?? 0
-
+  
+  const story = getKnowledgeFormStory('pairing')
+ 
+  
   useEffect(() => {
     initializeAuth()
 
@@ -783,8 +789,18 @@ function KnowledgeInterview() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
+     
       <div className="max-w-5xl mx-auto px-4 py-12">
         <header className="text-center mb-10 relative">
+           {story && (
+  <KnowledgeStoryCard
+    title={story.title}
+    subtitle={story.subtitle}
+    whyItMatters={story.whyItMatters}
+    howToAnswer={story.howToAnswer}
+    somasImpact={story.somasImpact}
+  />
+)}
           {userId && (
             <button
               type="button"
