@@ -10,7 +10,7 @@ import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSele
 import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPanel'
 import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
 import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
-
+import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
 import type {
   KnowledgeModule,
   Progress,
@@ -347,6 +347,22 @@ function KnowledgeInterview() {
   const currentQuestion = questions.length > 0 ? questions[questionIndex] : null
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
+  const contributionModules = [
+  {
+    name: 'Pairing Intelligence',
+    answered:
+      progress.pairing?.questions_answered ?? 0,
+    total:
+      progress.pairing?.total_questions ?? 0,
+  },
+  {
+    name: 'Wine Identity',
+    answered:
+      progress.wine_identity?.questions_answered ?? 0,
+    total:
+      progress.wine_identity?.total_questions ?? 0,
+  },
+]
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
   const story = getKnowledgeFormStory('pairing')
