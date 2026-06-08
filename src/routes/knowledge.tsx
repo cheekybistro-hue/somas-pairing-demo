@@ -667,7 +667,16 @@ function KnowledgeInterview() {
 function handleReviewModule(module: KnowledgeModule) {
   setReviewModule(module)
 }
-  
+  function handleEditAnswer(answer: any) {
+  console.log('Editar resposta', answer)
+
+  setReviewModule(null)
+
+  // por agora abre o módulo novamente
+  if (selectedModule) {
+    void startModule(selectedModule)
+  }
+}
   
   function clearAnswerState() {
     setSelectedWine('')
@@ -978,6 +987,7 @@ function handleReviewModule(module: KnowledgeModule) {
                 setReviewModule(null)
                 startModule(moduleToContinue)
               }}
+              onEdit={handleEditAnswer}
             />
           </div>
         )}
