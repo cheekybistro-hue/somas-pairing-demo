@@ -297,9 +297,6 @@ const portugueseGrapes = [
   'Outro',
 ]
 
-const [recentAnswers, setRecentAnswers] =
-  useState<any[]>([])
-
 function KnowledgeInterview() {
   const [stage, setStage] = useState<Stage>('auth')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
@@ -327,6 +324,7 @@ function KnowledgeInterview() {
   const [progress, setProgress] = useState<Record<string, Progress>>({})
   const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
   const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
+  const [recentAnswers, setRecentAnswers] = useState<any[]>([])
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -357,7 +355,10 @@ function KnowledgeInterview() {
     return {
       name: module.module_name,
       answered: moduleProgress?.questions_answered ?? 0,
-      total: module.estimated_questions ?? 0,
+      total:
+      moduleProgress?.total_questions ??
+      module.estimated_questions ??
+      0,
     }
   })
 
@@ -367,8 +368,8 @@ function KnowledgeInterview() {
   if (!module) return null
 
   const code = module.module_code?.toUpperCase()
-  const name = module.module_name?.toLowerCase()
-  const phase = module.form_phase?.toLowerCase()
+  const name = module.module_name?.toLowerCase() ?? ''
+  const phase = module.form_phase?.toLowerCase() ?? ''
 
   if (code === 'FORM1' || phase.includes('pairing')) {
     return 'pairing'
@@ -563,19 +564,23 @@ function KnowledgeInterview() {
       consensus.profileConsensus
     )
 
-    const { data: answersData } =
-      await supabase
-        .from('knowledge_answers')
-        .select('*')
-        .eq('expert_id', activeExpertId)
-        .order('created_at', {
-          ascending: false,
-        })
-        .limit(20)
+    const {
+      data: answersData,
+      error: answersError,
+    } = await supabase
+      .from('knowledge_answers')
+      .select('*')
+      .eq('expert_id', activeExpertId)
+      .order('created_at', {
+        ascending: false,
+      })
+      .limit(20)
 
-    setRecentAnswers(
-      answersData ?? []
-    )
+    if (answersError) {
+      throw new Error(answersError.message)
+    }
+
+    setRecentAnswers(answersData ?? [])
   } catch (err) {
     setError(
       err instanceof Error
@@ -1025,9 +1030,10 @@ const reviewAnswers =
             </div>
 
             <MyContributionsCard modules={contributionModules} />
-<ReviewAnswersCard
-  answers={reviewAnswers}
-/>
+
+            <ReviewAnswersCard
+              answers={reviewAnswers}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
