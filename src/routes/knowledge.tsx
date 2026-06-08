@@ -684,6 +684,14 @@ const reviewAnswers =
     }
   }
 
+  
+  function reviewModule(module: KnowledgeModule) {
+  alert(
+    `Revisão de respostas para ${module.module_name} será implementada no próximo PR.`
+  )
+}
+  
+  
   function clearAnswerState() {
     setSelectedWine('')
     setSelectedValue('')
@@ -1059,6 +1067,7 @@ const reviewAnswers =
   moduleCards={moduleCards}
   progress={progress}
   onStart={startModule}
+  onReview={reviewModule}
 />
           </div>
         )}
