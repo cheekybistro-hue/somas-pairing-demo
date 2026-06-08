@@ -11,6 +11,7 @@ import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPa
 import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
 import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
 import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
+import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
 import type {
   KnowledgeModule,
   Progress,
@@ -325,8 +326,6 @@ function KnowledgeInterview() {
   const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
   const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
   const [recentAnswers, setRecentAnswers] = useState<any[]>([])
-  const [reviewModuleCode, setReviewModuleCode] =
-  useState<string | null>(null)
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -363,6 +362,9 @@ function KnowledgeInterview() {
       0,
     }
   })
+
+  const [reviewModule, setReviewModule] =
+  useState<KnowledgeModule | null>(null)
 
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
@@ -615,13 +617,6 @@ const reviewAnswers =
       answer.created_at ?? null,
   }))
 
-  const filteredReviewAnswers =
-  reviewModuleCode
-    ? reviewAnswers.filter(
-        (answer) =>
-          answer.moduleName === reviewModuleCode
-      )
-    : []
   async function createExpertProfile() {
     if (!userId) return
 
@@ -696,7 +691,7 @@ const reviewAnswers =
 
   
 function reviewModule(module: KnowledgeModule) {
-  setReviewModuleCode(module.module_code)
+  setReviewModule(module)
 }
   
   
@@ -1074,29 +1069,22 @@ function reviewModule(module: KnowledgeModule) {
   onStart={startModule}
   onReview={reviewModule}
 />
-            {reviewModuleCode && (
-  <div className="mt-6">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold">
-        Respostas do módulo {reviewModuleCode}
-      </h3>
-
-      <button
-        type="button"
-        onClick={() =>
-          setReviewModuleCode(null)
-        }
-        className="px-4 py-2 rounded-xl border border-zinc-600 text-sm"
-      >
-        Fechar
-      </button>
-    </div>
-
-    <ReviewAnswersCard
-      answers={filteredReviewAnswers}
-    />
-  </div>
+{reviewModule && activeExpertId && (
+  <ModuleReviewPage
+    expertId={activeExpertId}
+    formPhase={reviewModule.form_phase}
+    moduleName={reviewModule.module_name}
+    onBack={() =>
+      setReviewModule(null)
+    }
+    onContinue={() => {
+      setReviewModule(null)
+      startModule(reviewModule)
+    }}
+  />
 )}
+            
+
           </div>
         )}
 {stage === 'interview' && selectedModule && currentQuestion && (
