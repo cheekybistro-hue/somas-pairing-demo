@@ -10,14 +10,23 @@ type Props = {
 
   onBack: () => void
   onContinue: () => void
+  onEdit: (answer: ReviewAnswer) => void
 }
-
+type ReviewAnswer = {
+  id: string
+  question_code: string
+  question_text: string
+  answer_text: string | null
+  confidence: number | null
+  created_at: string | null
+}
 export function ModuleReviewPage({
   expertId,
   formPhase,
   moduleName,
   onBack,
   onContinue,
+  onEdit,
 }: Props) {
   const [answers, setAnswers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +80,7 @@ export function ModuleReviewPage({
       answers={answers}
       onBack={onBack}
       onContinue={onContinue}
+      onEdit={onEdit}
     />
   )
 }
