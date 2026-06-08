@@ -1084,29 +1084,7 @@ function reviewModule(module: KnowledgeModule) {
   />
 )}
             
-            {reviewModuleCode && (
-  <div className="mt-6">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold">
-        Respostas do módulo {reviewModuleCode}
-      </h3>
 
-      <button
-        type="button"
-        onClick={() =>
-          setReviewModuleCode(null)
-        }
-        className="px-4 py-2 rounded-xl border border-zinc-600 text-sm"
-      >
-        Fechar
-      </button>
-    </div>
-
-    <ReviewAnswersCard
-      answers={filteredReviewAnswers}
-    />
-  </div>
-)}
           </div>
         )}
 {stage === 'interview' && selectedModule && currentQuestion && (
