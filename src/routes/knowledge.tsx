@@ -325,6 +325,8 @@ function KnowledgeInterview() {
   const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
   const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
   const [recentAnswers, setRecentAnswers] = useState<any[]>([])
+  const [reviewModuleCode, setReviewModuleCode] =
+  useState<string | null>(null)
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -612,6 +614,14 @@ const reviewAnswers =
     createdAt:
       answer.created_at ?? null,
   }))
+
+  const filteredReviewAnswers =
+  reviewModuleCode
+    ? reviewAnswers.filter(
+        (answer) =>
+          answer.moduleName === reviewModuleCode
+      )
+    : []
   async function createExpertProfile() {
     if (!userId) return
 
@@ -685,10 +695,8 @@ const reviewAnswers =
   }
 
   
-  function reviewModule(module: KnowledgeModule) {
-  alert(
-    `Revisão de respostas para ${module.module_name} será implementada no próximo PR.`
-  )
+function reviewModule(module: KnowledgeModule) {
+  setReviewModuleCode(module.module_code)
 }
   
   
@@ -1039,9 +1047,6 @@ const reviewAnswers =
 
             <MyContributionsCard modules={contributionModules} />
 
-            <ReviewAnswersCard
-              answers={reviewAnswers}
-            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
@@ -1069,6 +1074,29 @@ const reviewAnswers =
   onStart={startModule}
   onReview={reviewModule}
 />
+            {reviewModuleCode && (
+  <div className="mt-6">
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="text-xl font-semibold">
+        Respostas do módulo {reviewModuleCode}
+      </h3>
+
+      <button
+        type="button"
+        onClick={() =>
+          setReviewModuleCode(null)
+        }
+        className="px-4 py-2 rounded-xl border border-zinc-600 text-sm"
+      >
+        Fechar
+      </button>
+    </div>
+
+    <ReviewAnswersCard
+      answers={filteredReviewAnswers}
+    />
+  </div>
+)}
           </div>
         )}
 {stage === 'interview' && selectedModule && currentQuestion && (
