@@ -12,6 +12,7 @@ type Props = {
   answers: ReviewAnswer[]
   onBack: () => void
   onContinue: () => void
+  onEdit: (answer: ReviewAnswer) => void
 }
 
 export function ModuleReviewCard({
@@ -19,6 +20,7 @@ export function ModuleReviewCard({
   answers,
   onBack,
   onContinue,
+  onEdit,
 }: Props) {
   return (
     <section className="bg-zinc-900/60 border border-zinc-700 rounded-2xl p-6">
@@ -62,9 +64,20 @@ export function ModuleReviewCard({
               )}
             </div>
 
-            <div className="mt-3 text-zinc-100">
-              {answer.answer_text ?? '-'}
-            </div>
+<div className="mt-3 text-zinc-100">
+  {answer.answer_text ?? '-'}
+</div>
+
+<div className="mt-4">
+<button
+  type="button"
+  onClick={() => onEdit(answer)}
+  className="px-3 py-2 rounded-lg border border-amber-500 text-amber-400 text-sm hover:bg-amber-500/10"
+>
+  Editar resposta
+</button>
+</div>
+            
           </div>
         ))}
       </div>
