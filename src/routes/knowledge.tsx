@@ -1069,9 +1069,9 @@ function handleReviewModule(module: KnowledgeModule) {
   onStart={startModule}
   onReview={handleReviewModule}
 />
-{reviewModule && ExpertId && (
+{reviewModule && expertId && (
   <ModuleReviewPage
-    expertId={ExpertId}
+    expertId={expertId}
     formPhase={reviewModule.form_phase}
     moduleName={reviewModule.module_name}
     onBack={() =>
