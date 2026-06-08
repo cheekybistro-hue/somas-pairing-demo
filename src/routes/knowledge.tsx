@@ -40,7 +40,6 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-import { ReviewAnswersCard } from '../components/knowledge/ReviewAnswersCard'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -325,7 +324,6 @@ function KnowledgeInterview() {
   const [progress, setProgress] = useState<Record<string, Progress>>({})
   const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
   const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
-  const [recentAnswers, setRecentAnswers] = useState<any[]>([])
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -593,30 +591,6 @@ function KnowledgeInterview() {
     )
   }
 }
-const reviewAnswers =
-  recentAnswers.map((answer) => ({
-    id: answer.id,
-
-    moduleName:
-      answer.module_code ??
-      'Knowledge',
-
-    questionLabel:
-      answer.question_code ??
-      'Pergunta',
-
-    answerSummary:
-      answer.answer_value ??
-      answer.answer_text ??
-      'Resposta registada',
-
-    confidence:
-      answer.confidence ?? null,
-
-    createdAt:
-      answer.created_at ?? null,
-  }))
-
   async function createExpertProfile() {
     if (!userId) return
 
@@ -992,7 +966,23 @@ function handleReviewModule(module: KnowledgeModule) {
   />
 )}
 
-        {stage === 'module' && (
+        {stage === 'module' && reviewModule && expertId && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <ModuleReviewPage
+              expertId={expertId}
+              formPhase={reviewModule.form_phase}
+              moduleName={reviewModule.module_name}
+              onBack={() => setReviewModule(null)}
+              onContinue={() => {
+                const moduleToContinue = reviewModule
+                setReviewModule(null)
+                startModule(moduleToContinue)
+              }}
+            />
+          </div>
+        )}
+
+        {stage === 'module' && !reviewModule && (
           <div className="max-w-5xl mx-auto space-y-6">
             <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -1069,20 +1059,6 @@ function handleReviewModule(module: KnowledgeModule) {
   onStart={startModule}
   onReview={handleReviewModule}
 />
-{reviewModule && expertId && (
-  <ModuleReviewPage
-    expertId={expertId}
-    formPhase={reviewModule.form_phase}
-    moduleName={reviewModule.module_name}
-    onBack={() =>
-      setReviewModule(null)
-    }
-    onContinue={() => {
-      setReviewModule(null)
-      startModule(reviewModule)
-    }}
-  />
-)}
             
 
           </div>
