@@ -543,20 +543,70 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-  async function refreshKnowledgeData(activeExpertId: string) {
-    try {
-      const result = await loadModulesAndProgress(activeExpertId)
-      setModules(result.modules)
-      setProgress(result.progress)
+ async function refreshKnowledgeData(activeExpertId: string) {
+  try {
+    const result = await loadModulesAndProgress(
+      activeExpertId
+    )
 
-      const consensus = await loadConsensusInsights()
-      setInternationalConsensus(consensus.internationalConsensus)
-      setProfileConsensus(consensus.profileConsensus)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de conhecimento.')
-    }
+    setModules(result.modules)
+    setProgress(result.progress)
+
+    const consensus =
+      await loadConsensusInsights()
+
+    setInternationalConsensus(
+      consensus.internationalConsensus
+    )
+
+    setProfileConsensus(
+      consensus.profileConsensus
+    )
+
+    const { data: answersData } =
+      await supabase
+        .from('knowledge_answers')
+        .select('*')
+        .eq('expert_id', activeExpertId)
+        .order('created_at', {
+          ascending: false,
+        })
+        .limit(20)
+
+    setRecentAnswers(
+      answersData ?? []
+    )
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Erro ao carregar dados de conhecimento.'
+    )
   }
+}
+const reviewAnswers =
+  recentAnswers.map((answer) => ({
+    id: answer.id,
 
+    moduleName:
+      answer.module_code ??
+      'Knowledge',
+
+    questionLabel:
+      answer.question_code ??
+      'Pergunta',
+
+    answerSummary:
+      answer.answer_value ??
+      answer.answer_text ??
+      'Resposta registada',
+
+    confidence:
+      answer.confidence ?? null,
+
+    createdAt:
+      answer.created_at ?? null,
+  }))
   async function createExpertProfile() {
     if (!userId) return
 
