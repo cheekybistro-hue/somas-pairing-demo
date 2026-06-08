@@ -39,7 +39,7 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-
+import { ReviewAnswersCard } from '../components/knowledge/ReviewAnswersCard'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -296,6 +296,9 @@ const portugueseGrapes = [
   'Trincadeira',
   'Outro',
 ]
+
+const [recentAnswers, setRecentAnswers] =
+  useState<any[]>([])
 
 function KnowledgeInterview() {
   const [stage, setStage] = useState<Stage>('auth')
@@ -972,7 +975,9 @@ function KnowledgeInterview() {
             </div>
 
             <MyContributionsCard modules={contributionModules} />
-
+<ReviewAnswersCard
+  answers={reviewAnswers}
+/>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
