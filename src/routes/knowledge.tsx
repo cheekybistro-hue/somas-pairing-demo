@@ -690,7 +690,7 @@ const reviewAnswers =
   }
 
   
-function reviewModule(module: KnowledgeModule) {
+function handleReviewModule(module: KnowledgeModule) {
   setReviewModule(module)
 }
   
@@ -1067,7 +1067,7 @@ function reviewModule(module: KnowledgeModule) {
   moduleCards={moduleCards}
   progress={progress}
   onStart={startModule}
-  onReview={reviewModule}
+  onReview={handleReviewModule}
 />
 {reviewModule && activeExpertId && (
   <ModuleReviewPage
