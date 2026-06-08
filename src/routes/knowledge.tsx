@@ -39,7 +39,7 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-
+import { ReviewAnswersCard } from '../components/knowledge/ReviewAnswersCard'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -324,6 +324,7 @@ function KnowledgeInterview() {
   const [progress, setProgress] = useState<Record<string, Progress>>({})
   const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
   const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
+  const [recentAnswers, setRecentAnswers] = useState<any[]>([])
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -354,7 +355,10 @@ function KnowledgeInterview() {
     return {
       name: module.module_name,
       answered: moduleProgress?.questions_answered ?? 0,
-      total: module.estimated_questions ?? 0,
+      total:
+      moduleProgress?.total_questions ??
+      module.estimated_questions ??
+      0,
     }
   })
 
@@ -364,8 +368,8 @@ function KnowledgeInterview() {
   if (!module) return null
 
   const code = module.module_code?.toUpperCase()
-  const name = module.module_name?.toLowerCase()
-  const phase = module.form_phase?.toLowerCase()
+  const name = module.module_name?.toLowerCase() ?? ''
+  const phase = module.form_phase?.toLowerCase() ?? ''
 
   if (code === 'FORM1' || phase.includes('pairing')) {
     return 'pairing'
@@ -540,20 +544,74 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-  async function refreshKnowledgeData(activeExpertId: string) {
-    try {
-      const result = await loadModulesAndProgress(activeExpertId)
-      setModules(result.modules)
-      setProgress(result.progress)
+ async function refreshKnowledgeData(activeExpertId: string) {
+  try {
+    const result = await loadModulesAndProgress(
+      activeExpertId
+    )
 
-      const consensus = await loadConsensusInsights()
-      setInternationalConsensus(consensus.internationalConsensus)
-      setProfileConsensus(consensus.profileConsensus)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de conhecimento.')
+    setModules(result.modules)
+    setProgress(result.progress)
+
+    const consensus =
+      await loadConsensusInsights()
+
+    setInternationalConsensus(
+      consensus.internationalConsensus
+    )
+
+    setProfileConsensus(
+      consensus.profileConsensus
+    )
+
+    const {
+      data: answersData,
+      error: answersError,
+    } = await supabase
+      .from('knowledge_answers')
+      .select('*')
+      .eq('expert_id', activeExpertId)
+      .order('created_at', {
+        ascending: false,
+      })
+      .limit(20)
+
+    if (answersError) {
+      throw new Error(answersError.message)
     }
-  }
 
+    setRecentAnswers(answersData ?? [])
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Erro ao carregar dados de conhecimento.'
+    )
+  }
+}
+const reviewAnswers =
+  recentAnswers.map((answer) => ({
+    id: answer.id,
+
+    moduleName:
+      answer.module_code ??
+      'Knowledge',
+
+    questionLabel:
+      answer.question_code ??
+      'Pergunta',
+
+    answerSummary:
+      answer.answer_value ??
+      answer.answer_text ??
+      'Resposta registada',
+
+    confidence:
+      answer.confidence ?? null,
+
+    createdAt:
+      answer.created_at ?? null,
+  }))
   async function createExpertProfile() {
     if (!userId) return
 
@@ -973,6 +1031,9 @@ function KnowledgeInterview() {
 
             <MyContributionsCard modules={contributionModules} />
 
+            <ReviewAnswersCard
+              answers={reviewAnswers}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
