@@ -347,25 +347,20 @@ function KnowledgeInterview() {
   const currentQuestion = questions.length > 0 ? questions[questionIndex] : null
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
-  const contributionModules = [
-  {
-    name: 'Pairing Intelligence',
-    answered:
-      progress.pairing?.questions_answered ?? 0,
-    total:
-      progress.pairing?.total_questions ?? 0,
-  },
-  {
-    name: 'Wine Identity',
-    answered:
-      progress.wine_identity?.questions_answered ?? 0,
-    total:
-      progress.wine_identity?.total_questions ?? 0,
-  },
-]
+
+  const contributionModules = modules.map((module) => {
+    const moduleProgress = progress[module.form_phase]
+
+    return {
+      name: module.module_name,
+      answered: moduleProgress?.questions_answered ?? 0,
+      total: module.estimated_questions ?? 0,
+    }
+  })
+
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
-function getStoryPhaseForModule(module: KnowledgeModule | null) {
+  function getStoryPhaseForModule(module: KnowledgeModule | null) {
   if (!module) return null
 
   const code = module.module_code?.toUpperCase()
@@ -397,8 +392,8 @@ function getStoryPhaseForModule(module: KnowledgeModule | null) {
   return null
 }
 
-const storyPhase = getStoryPhaseForModule(selectedModule)
-const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
+  const storyPhase = getStoryPhaseForModule(selectedModule)
+  const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
  
   
   useEffect(() => {
@@ -841,8 +836,6 @@ const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
      
       <div className="max-w-5xl mx-auto px-4 py-12">
         <header className="text-center mb-10 relative">
-           {story && (
-
           {userId && (
             <button
               type="button"
@@ -978,6 +971,8 @@ const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
               </div>
             </div>
 
+            <MyContributionsCard modules={contributionModules} />
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
@@ -1006,23 +1001,19 @@ const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
 />
           </div>
         )}
-<div className="max-w-5xl mx-auto space-y-6">
-  {story && (
-    <KnowledgeStoryCard
-      title={story.title}
-      subtitle={story.subtitle}
-      whyItMatters={story.whyItMatters}
-      howToAnswer={story.howToAnswer}
-      somasImpact={story.somasImpact}
-    />
-  )}
-
-  <KnowledgeInterviewPanel
-    ...
-  />
-</div>
 {stage === 'interview' && selectedModule && currentQuestion && (
-  <KnowledgeInterviewPanel
+  <div className="space-y-6">
+    {story && (
+      <KnowledgeStoryCard
+        title={story.title}
+        subtitle={story.subtitle}
+        whyItMatters={story.whyItMatters}
+        howToAnswer={story.howToAnswer}
+        somasImpact={story.somasImpact}
+      />
+    )}
+
+    <KnowledgeInterviewPanel
     selectedModule={selectedModule}
     currentQuestion={currentQuestion}
     questionIndex={questionIndex}
@@ -1075,9 +1066,10 @@ const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
     Field={Field}
     ErrorBox={ErrorBox}
 
-    isQualitativeRelationshipType={isQualitativeRelationshipType}
-    isInternationalIdentityType={isInternationalIdentityType}
-  />
+      isQualitativeRelationshipType={isQualitativeRelationshipType}
+      isInternationalIdentityType={isInternationalIdentityType}
+    />
+  </div>
 )}
         
         {stage === 'done' && (
