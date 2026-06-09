@@ -365,6 +365,8 @@ function KnowledgeInterview() {
   useState<KnowledgeModule | null>(null)
   const [editQuestionCode, setEditQuestionCode] =
   useState<string | null>(null)
+  const [editAnswerData, setEditAnswerData] =
+  useState<any | null>(null)
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
   function getStoryPhaseForModule(module: KnowledgeModule | null) {
@@ -447,14 +449,33 @@ function KnowledgeInterview() {
   })
 
   if (targetIndex >= 0) {
-    setQuestionIndex(targetIndex)
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }, 100)
+  setQuestionIndex(targetIndex)
+
+  if (editAnswerData) {
+    setSelectedWine(
+      editAnswerData.wine_profile_code ?? ''
+    )
+
+    setReason(
+      editAnswerData.reason ?? ''
+    )
+
+    setConfidence(
+      editAnswerData.confidence ?? 1
+    )
   }
 
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, 100)
+}
+
   setEditQuestionCode(null)
-}, [editQuestionCode, questions])
+}, [
+  editQuestionCode,
+  editAnswerData,
+  questions,
+])
 
   async function initializeAuth() {
     const { data } = await supabase.auth.getSession()
@@ -699,11 +720,24 @@ function KnowledgeInterview() {
 function handleReviewModule(module: KnowledgeModule) {
   setReviewModule(module)
 }
-function handleEditAnswer(answer: any) {
+
+  function handleEditAnswer(answer: any) {
   if (!reviewModule) return
 
   setEditQuestionCode(answer.question_code)
+
+  try {
+    setEditAnswerData(
+      answer.answer_json
+        ? JSON.parse(answer.answer_json)
+        : null
+    )
+  } catch {
+    setEditAnswerData(null)
+  }
+
   setReviewModule(null)
+
   void startModule(reviewModule)
 }
   
