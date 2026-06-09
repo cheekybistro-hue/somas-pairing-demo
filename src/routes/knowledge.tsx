@@ -363,7 +363,8 @@ function KnowledgeInterview() {
 
   const [reviewModule, setReviewModule] =
   useState<KnowledgeModule | null>(null)
-
+  const [editQuestionCode, setEditQuestionCode] =
+  useState<string | null>(null)
   const answeredInModule = currentProgress?.questions_answered ?? 0
   
   function getStoryPhaseForModule(module: KnowledgeModule | null) {
@@ -404,6 +405,37 @@ function KnowledgeInterview() {
   
   useEffect(() => {
     initializeAuth()
+useEffect(() => {
+  if (!editQuestionCode || questions.length === 0) {
+    return
+  }
+
+  const targetIndex = questions.findIndex((question) => {
+    if (question.question_code) {
+      return question.question_code === editQuestionCode
+    }
+
+    if (question.food_archetype_code) {
+      return `${question.food_archetype_code}_PAIRING` === editQuestionCode
+    }
+
+    if (question.wine_profile_code && question.question_type) {
+      return `${question.wine_profile_code}_${question.question_type.toUpperCase()}` === editQuestionCode
+    }
+
+    return false
+  })
+
+  if (targetIndex >= 0) {
+    setQuestionIndex(targetIndex)
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100)
+  }
+
+  setEditQuestionCode(null)
+}, [editQuestionCode, questions])
+    
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null
@@ -667,15 +699,12 @@ function KnowledgeInterview() {
 function handleReviewModule(module: KnowledgeModule) {
   setReviewModule(module)
 }
-  function handleEditAnswer(answer: any) {
-  console.log('Editar resposta', answer)
+function handleEditAnswer(answer: any) {
+  if (!reviewModule) return
 
+  setEditQuestionCode(answer.question_code)
   setReviewModule(null)
-
-  // por agora abre o módulo novamente
-  if (selectedModule) {
-    void startModule(selectedModule)
-  }
+  void startModule(reviewModule)
 }
   
   function clearAnswerState() {
