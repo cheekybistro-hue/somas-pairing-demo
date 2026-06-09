@@ -405,7 +405,27 @@ function KnowledgeInterview() {
   
   useEffect(() => {
     initializeAuth()
-useEffect(() => {
+ 
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null
+      if (!user) {
+        resetUserState()
+        return
+      }
+
+      setUserId(user.id)
+      setUserEmail(user.email ?? null)
+      setAuthEmail(user.email ?? '')
+      setEmail(user.email ?? '')
+      loadExpertForUser(user.id, user.email ?? '')
+    })
+
+    return () => {
+      data.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
   if (!editQuestionCode || questions.length === 0) {
     return
   }
@@ -435,26 +455,6 @@ useEffect(() => {
 
   setEditQuestionCode(null)
 }, [editQuestionCode, questions])
-    
-
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user ?? null
-      if (!user) {
-        resetUserState()
-        return
-      }
-
-      setUserId(user.id)
-      setUserEmail(user.email ?? null)
-      setAuthEmail(user.email ?? '')
-      setEmail(user.email ?? '')
-      loadExpertForUser(user.id, user.email ?? '')
-    })
-
-    return () => {
-      data.subscription.unsubscribe()
-    }
-  }, [])
 
   async function initializeAuth() {
     const { data } = await supabase.auth.getSession()
