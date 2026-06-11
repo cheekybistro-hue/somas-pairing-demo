@@ -368,35 +368,8 @@ function KnowledgeInterview() {
   const [editAnswerData, setEditAnswerData] =
   useState<any | null>(null)
   const answeredInModule = currentProgress?.questions_answered ?? 0
-  
-  function getStoryPhaseForModule(module: KnowledgeModule | null) {
-  if (!module) return null
-
-  const code = module.module_code?.toUpperCase()
-  const name = module.module_name?.toLowerCase() ?? ''
-  const phase = module.form_phase?.toLowerCase() ?? ''
-
-  if (code === 'FORM1' || phase.includes('pairing')) {
-    return 'pairing'
-  }
-
-  if (
-    code === 'FORM2' ||
-    code === 'FORM3' ||
-    code === 'FORM21' ||
-    name.includes('identidade') ||
-    name.includes('relações')
-  ) {
-    return 'wine_identity'
-  }
-
-  if (name.includes('aroma')) {
-    return 'wine_aromatic'
-  }
-
-  if (name.includes('dish') || name.includes('prato')) {
-    return 'dish_intelligence'
-  }
+  const [aromaticValues, setAromaticValues] =
+  useState<Record<string, number>>({})
 
   return null
 }
@@ -754,6 +727,7 @@ function handleReviewModule(module: KnowledgeModule) {
     setSelectedDescriptors([])
     setReason('')
     setConfidence(1)
+    setAromaticValues({})
   }
 
   function getAnswerValue() {
@@ -1201,10 +1175,12 @@ function handleReviewModule(module: KnowledgeModule) {
     Field={Field}
     ErrorBox={ErrorBox}
 
-      isQualitativeRelationshipType={isQualitativeRelationshipType}
-      isInternationalIdentityType={isInternationalIdentityType}
-    />
-  </div>
+    isQualitativeRelationshipType={isQualitativeRelationshipType}
+    isInternationalIdentityType={isInternationalIdentityType}
+
+    aromaticValues={aromaticValues}
+    setAromaticValues={setAromaticValues}
+  />
 )}
         
         {stage === 'done' && (
