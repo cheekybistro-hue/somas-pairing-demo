@@ -165,13 +165,13 @@ export default function KnowledgeInterviewPanel(props: Props) {
       question_text: currentQuestion.question_text,
       aromatic_families: AROMATIC_FAMILIES,
     } as any}
-    values={aromaticValues}
-    onChange={(code, value) =>
-      setAromaticValues((prev) => ({
-        ...prev,
-        [code]: value,
-      }))
-    }
+    values={aromaticValues ?? {}}
+onChange={(code, value) =>
+  setAromaticValues((prev) => ({
+    ...(prev ?? {}),
+    [code]: value,
+  }))
+}
   />
 ) : (
   <>
