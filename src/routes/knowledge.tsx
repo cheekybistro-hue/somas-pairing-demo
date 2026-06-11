@@ -345,6 +345,8 @@ function KnowledgeInterview() {
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
   const answeredInModule = currentProgress?.questions_answered ?? 0
+  const [aromaticValues, setAromaticValues] =
+  useState<Record<string, number>>({})
 
   useEffect(() => {
     initializeAuth()
@@ -589,6 +591,7 @@ function KnowledgeInterview() {
     setSelectedDescriptors([])
     setReason('')
     setConfidence(1)
+    setAromaticValues({})
   }
 
   function getAnswerValue() {
@@ -1005,6 +1008,9 @@ function KnowledgeInterview() {
 
     isQualitativeRelationshipType={isQualitativeRelationshipType}
     isInternationalIdentityType={isInternationalIdentityType}
+
+    aromaticValues={aromaticValues}
+    setAromaticValues={setAromaticValues}
   />
 )}
         
