@@ -371,6 +371,50 @@ function KnowledgeInterview() {
   const [aromaticValues, setAromaticValues] =
   useState<Record<string, number>>({})
 
+function getStoryPhaseForModule(
+  module: KnowledgeModule | null
+) {
+  if (!module) return null
+
+  const code = module.module_code?.toUpperCase()
+  const name = module.module_name?.toLowerCase() ?? ''
+  const phase = module.form_phase?.toLowerCase() ?? ''
+
+  if (
+    code === 'FORM1' ||
+    phase.includes('pairing')
+  ) {
+    return 'pairing'
+  }
+
+  if (
+    code === 'FORM2' ||
+    code === 'FORM3' ||
+    code === 'FORM21' ||
+    name.includes('identidade') ||
+    name.includes('relações')
+  ) {
+    return 'wine_identity'
+  }
+
+  if (
+    code === 'FORM4' ||
+    phase.includes('aromatic') ||
+    name.includes('aroma')
+  ) {
+    return 'wine_aromatic'
+  }
+
+  if (
+    phase.includes('dish') ||
+    name.includes('prato')
+  ) {
+    return 'dish_intelligence'
+  }
+
+  return null
+}
+  
   const storyPhase = getStoryPhaseForModule(selectedModule)
   const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
  
