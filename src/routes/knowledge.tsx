@@ -8,6 +8,10 @@ import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
 import KnowledgeModuleSelection from '@/components/knowledge/KnowledgeModuleSelection'
 import KnowledgeInterviewPanel from '@/components/knowledge/KnowledgeInterviewPanel'
+import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
+import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
+import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
+import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
 import type {
   KnowledgeModule,
   Progress,
@@ -36,7 +40,6 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -344,13 +347,40 @@ function KnowledgeInterview() {
   const currentQuestion = questions.length > 0 ? questions[questionIndex] : null
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
+
+  const contributionModules = modules.map((module) => {
+    const moduleProgress = progress[module.form_phase]
+
+    return {
+      name: module.module_name,
+      answered: moduleProgress?.questions_answered ?? 0,
+      total:
+      moduleProgress?.total_questions ??
+      module.estimated_questions ??
+      0,
+    }
+  })
+
+  const [reviewModule, setReviewModule] =
+  useState<KnowledgeModule | null>(null)
+  const [editQuestionCode, setEditQuestionCode] =
+  useState<string | null>(null)
+  const [editAnswerData, setEditAnswerData] =
+  useState<any | null>(null)
   const answeredInModule = currentProgress?.questions_answered ?? 0
   const [aromaticValues, setAromaticValues] =
   useState<Record<string, number>>({})
 
+  return null
+}
+
+  const storyPhase = getStoryPhaseForModule(selectedModule)
+  const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
+ 
+  
   useEffect(() => {
     initializeAuth()
-
+ 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null
       if (!user) {
@@ -369,6 +399,56 @@ function KnowledgeInterview() {
       data.subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+  if (!editQuestionCode || questions.length === 0) {
+    return
+  }
+
+  const targetIndex = questions.findIndex((question) => {
+    if (question.question_code) {
+      return question.question_code === editQuestionCode
+    }
+
+    if (question.food_archetype_code) {
+      return `${question.food_archetype_code}_PAIRING` === editQuestionCode
+    }
+
+    if (question.wine_profile_code && question.question_type) {
+      return `${question.wine_profile_code}_${question.question_type.toUpperCase()}` === editQuestionCode
+    }
+
+    return false
+  })
+
+  if (targetIndex >= 0) {
+  setQuestionIndex(targetIndex)
+
+  if (editAnswerData) {
+    setSelectedWine(
+      editAnswerData.wine_profile_code ?? ''
+    )
+
+    setReason(
+      editAnswerData.reason ?? ''
+    )
+
+    setConfidence(
+      editAnswerData.confidence ?? 1
+    )
+  }
+
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, 100)
+}
+
+  setEditQuestionCode(null)
+}, [
+  editQuestionCode,
+  editAnswerData,
+  questions,
+])
 
   async function initializeAuth() {
     const { data } = await supabase.auth.getSession()
@@ -492,20 +572,51 @@ function KnowledgeInterview() {
     setLoading(false)
   }
 
-  async function refreshKnowledgeData(activeExpertId: string) {
-    try {
-      const result = await loadModulesAndProgress(activeExpertId)
-      setModules(result.modules)
-      setProgress(result.progress)
+ async function refreshKnowledgeData(activeExpertId: string) {
+  try {
+    const result = await loadModulesAndProgress(
+      activeExpertId
+    )
 
-      const consensus = await loadConsensusInsights()
-      setInternationalConsensus(consensus.internationalConsensus)
-      setProfileConsensus(consensus.profileConsensus)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados de conhecimento.')
+    setModules(result.modules)
+    setProgress(result.progress)
+
+    const consensus =
+      await loadConsensusInsights()
+
+    setInternationalConsensus(
+      consensus.internationalConsensus
+    )
+
+    setProfileConsensus(
+      consensus.profileConsensus
+    )
+
+    const {
+      data: answersData,
+      error: answersError,
+    } = await supabase
+      .from('knowledge_answers')
+      .select('*')
+      .eq('expert_id', activeExpertId)
+      .order('created_at', {
+        ascending: false,
+      })
+      .limit(20)
+
+    if (answersError) {
+      throw new Error(answersError.message)
     }
-  }
 
+    setRecentAnswers(answersData ?? [])
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Erro ao carregar dados de conhecimento.'
+    )
+  }
+}
   async function createExpertProfile() {
     if (!userId) return
 
@@ -578,6 +689,31 @@ function KnowledgeInterview() {
     }
   }
 
+  
+function handleReviewModule(module: KnowledgeModule) {
+  setReviewModule(module)
+}
+
+  function handleEditAnswer(answer: any) {
+  if (!reviewModule) return
+
+  setEditQuestionCode(answer.question_code)
+
+  try {
+    setEditAnswerData(
+      answer.answer_json
+        ? JSON.parse(answer.answer_json)
+        : null
+    )
+  } catch {
+    setEditAnswerData(null)
+  }
+
+  setReviewModule(null)
+
+  void startModule(reviewModule)
+}
+  
   function clearAnswerState() {
     setSelectedWine('')
     setSelectedValue('')
@@ -786,6 +922,7 @@ function KnowledgeInterview() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
+     
       <div className="max-w-5xl mx-auto px-4 py-12">
         <header className="text-center mb-10 relative">
           {userId && (
@@ -875,7 +1012,24 @@ function KnowledgeInterview() {
   />
 )}
 
-        {stage === 'module' && (
+        {stage === 'module' && reviewModule && expertId && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <ModuleReviewPage
+              expertId={expertId}
+              formPhase={reviewModule.form_phase}
+              moduleName={reviewModule.module_name}
+              onBack={() => setReviewModule(null)}
+              onContinue={() => {
+                const moduleToContinue = reviewModule
+                setReviewModule(null)
+                startModule(moduleToContinue)
+              }}
+              onEdit={handleEditAnswer}
+            />
+          </div>
+        )}
+
+        {stage === 'module' && !reviewModule && (
           <div className="max-w-5xl mx-auto space-y-6">
             <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -923,6 +1077,8 @@ function KnowledgeInterview() {
               </div>
             </div>
 
+            <MyContributionsCard modules={contributionModules} />
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
@@ -948,12 +1104,25 @@ function KnowledgeInterview() {
   moduleCards={moduleCards}
   progress={progress}
   onStart={startModule}
+  onReview={handleReviewModule}
 />
+            
+
           </div>
         )}
-
 {stage === 'interview' && selectedModule && currentQuestion && (
-  <KnowledgeInterviewPanel
+  <div className="space-y-6">
+    {story && (
+      <KnowledgeStoryCard
+        title={story.title}
+        subtitle={story.subtitle}
+        whyItMatters={story.whyItMatters}
+        howToAnswer={story.howToAnswer}
+        somasImpact={story.somasImpact}
+      />
+    )}
+
+    <KnowledgeInterviewPanel
     selectedModule={selectedModule}
     currentQuestion={currentQuestion}
     questionIndex={questionIndex}

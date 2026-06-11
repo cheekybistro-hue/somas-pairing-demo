@@ -22,12 +22,14 @@ type Props = {
   moduleCards: KnowledgeModule[]
   progress: Record<string, Progress>
   onStart: (module: KnowledgeModule) => void
+  onReview?: (module: KnowledgeModule) => void
 }
 
 export default function KnowledgeModuleSelection({
   moduleCards,
   progress,
   onStart,
+  onReview,
 }: Props) {
   return (
     <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
@@ -46,6 +48,7 @@ export default function KnowledgeModuleSelection({
             module={module}
             progress={progress[module.form_phase]}
             onStart={onStart}
+            onReview={onReview}
           />
         ))}
       </div>
