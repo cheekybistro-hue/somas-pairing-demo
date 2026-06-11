@@ -141,9 +141,11 @@ export default function KnowledgeInterviewPanel(props: Props) {
         </div>
       </div>
 
-      <div className="text-amber-400 font-mono mb-2">
-        {currentQuestion.food_archetype_code || currentQuestion.wine_profile_code}
-      </div>
+{currentQuestion.question_type !== 'wine_aromatic_profile' && (
+  <div className="text-amber-400 font-mono mb-2">
+    {currentQuestion.food_archetype_code || currentQuestion.wine_profile_code}
+  </div>
+)}
 
 {currentQuestion.question_type !== 'wine_aromatic_profile' && (
   <>
@@ -158,21 +160,23 @@ export default function KnowledgeInterviewPanel(props: Props) {
 )}
 
 {currentQuestion.question_type === 'wine_aromatic_profile' ? (
-  <WineAromaticQuestionCard
-    question={{
-      wine_profile_code: currentQuestion.wine_profile_code,
-      wine_profile_title: currentQuestion.helper_text,
-      question_text: currentQuestion.question_text,
-      aromatic_families: AROMATIC_FAMILIES,
-    } as any}
-values={aromaticValues ?? {}}
-onChange={(code, value) => {
-  setAromaticValues({
-    ...(aromaticValues ?? {}),
-    [code]: value,
-  })
-}}
-  />
+<WineAromaticQuestionCard
+  question={{
+    wine_profile_code: currentQuestion.wine_profile_code,
+    wine_profile_title: currentQuestion.helper_text,
+    question_text: currentQuestion.question_text,
+    aromatic_families: AROMATIC_FAMILIES,
+  } as any}
+  values={aromaticValues ?? {}}
+  onChange={(code, value) => {
+    const nextValues = {
+      ...(aromaticValues ?? {}),
+      [code]: value,
+    }
+
+    setAromaticValues(nextValues)
+  }}
+/>
 ) : (
   <>
     <QuestionInput
