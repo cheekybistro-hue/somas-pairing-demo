@@ -52,22 +52,26 @@ export function WineAromaticQuestionCard({
                 </div>
               </div>
 
-              <input
-                type="range"
-                min={0}
-                max={5}
-                step={1}
-                value={
-                  values[family.code] ?? 0
-                }
-                onChange={(e) =>
-                  onChange(
-                    family.code,
-                    Number(e.target.value)
-                  )
-                }
-                className="w-full"
-              />
+             <div className="flex gap-2 mt-2">
+  {[0, 1, 2, 3, 4, 5].map((level) => {
+    const selected = (values[family.code] ?? 0) === level
+
+    return (
+      <button
+        key={level}
+        type="button"
+        onClick={() => onChange(family.code, level)}
+        className={
+          selected
+            ? 'w-9 h-9 rounded-full bg-amber-500 text-black text-sm font-semibold'
+            : 'w-9 h-9 rounded-full border border-zinc-600 text-zinc-300 text-sm hover:border-amber-400 hover:text-amber-300'
+        }
+      >
+        {level}
+      </button>
+    )
+  })}
+</div>
             </div>
           )
         )}
