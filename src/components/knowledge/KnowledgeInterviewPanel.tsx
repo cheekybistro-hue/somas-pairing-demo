@@ -1,6 +1,7 @@
 import { ArrowRight, Brain } from 'lucide-react'
 import DescriptorSelector from './DescriptorSelector'
-
+import { WineAromaticQuestionCard } from './WineAromaticQuestionCard'
+import { AROMATIC_FAMILIES } from '../../lib/knowledge/aromatic-taxonomy'
 type Props = {
   selectedModule: any
   currentQuestion: any
@@ -43,6 +44,14 @@ type Props = {
   confidence: number
   setConfidence: (v: number) => void
 
+aromaticValues: Record<string, number>
+setAromaticValues: (
+  value:
+    | Record<string, number>
+    | ((prev: Record<string, number>) => Record<string, number>)
+) => void
+
+  
   answeredInModule: number
   loading: boolean
   error: string | null
@@ -100,7 +109,10 @@ export default function KnowledgeInterviewPanel(props: Props) {
 
     confidence,
     setConfidence,
-
+    
+    aromaticValues,
+    setAromaticValues,
+    
     answeredInModule,
     loading,
     error,
@@ -145,38 +157,58 @@ export default function KnowledgeInterviewPanel(props: Props) {
         {currentQuestion.question_text}
       </p>
 
-      <QuestionInput
-        question={currentQuestion}
-        selectedWine={selectedWine}
-        setSelectedWine={setSelectedWine}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-        similarityDegree={similarityDegree}
-        setSimilarityDegree={setSimilarityDegree}
-        secondaryRegionStyles={secondaryRegionStyles}
-        setSecondaryRegionStyles={setSecondaryRegionStyles}
-        primaryGrape={primaryGrape}
-        setPrimaryGrape={setPrimaryGrape}
-        secondaryGrapes={secondaryGrapes}
-        setSecondaryGrapes={setSecondaryGrapes}
-        referenceProducer={referenceProducer}
-        setReferenceProducer={setReferenceProducer}
-        referenceLabel={referenceLabel}
-        setReferenceLabel={setReferenceLabel}
-        referenceYear={referenceYear}
-        setReferenceYear={setReferenceYear}
-      />
+{currentQuestion.question_type === 'wine_aromatic_profile' ? (
+  <WineAromaticQuestionCard
+    question={{
+      wine_profile_code: currentQuestion.wine_profile_code,
+      wine_profile_title: currentQuestion.helper_text,
+      question_text: currentQuestion.question_text,
+      aromatic_families: AROMATIC_FAMILIES,
+    } as any}
+    values={aromaticValues}
+    onChange={(code, value) =>
+      setAromaticValues((prev) => ({
+        ...prev,
+        [code]: value,
+      }))
+    }
+  />
+) : (
+  <>
+    <QuestionInput
+      question={currentQuestion}
+      selectedWine={selectedWine}
+      setSelectedWine={setSelectedWine}
+      selectedValue={selectedValue}
+      setSelectedValue={setSelectedValue}
+      similarityDegree={similarityDegree}
+      setSimilarityDegree={setSimilarityDegree}
+      secondaryRegionStyles={secondaryRegionStyles}
+      setSecondaryRegionStyles={setSecondaryRegionStyles}
+      primaryGrape={primaryGrape}
+      setPrimaryGrape={setPrimaryGrape}
+      secondaryGrapes={secondaryGrapes}
+      setSecondaryGrapes={setSecondaryGrapes}
+      referenceProducer={referenceProducer}
+      setReferenceProducer={setReferenceProducer}
+      referenceLabel={referenceLabel}
+      setReferenceLabel={setReferenceLabel}
+      referenceYear={referenceYear}
+      setReferenceYear={setReferenceYear}
+    />
 
-      <DescriptorSelector
-        label={
-          isQualitativeRelationshipType(currentQuestion.question_type) ||
-          isInternationalIdentityType(currentQuestion.question_type)
-            ? 'Estilo de Vinho'
-            : 'Que atributos justificam esta escolha?'
-        }
-        selectedDescriptors={selectedDescriptors}
-        setSelectedDescriptors={setSelectedDescriptors}
-      />
+    <DescriptorSelector
+      label={
+        isQualitativeRelationshipType(currentQuestion.question_type) ||
+        isInternationalIdentityType(currentQuestion.question_type)
+          ? 'Estilo de Vinho'
+          : 'Que atributos justificam esta escolha?'
+      }
+      selectedDescriptors={selectedDescriptors}
+      setSelectedDescriptors={setSelectedDescriptors}
+    />
+  </>
+)}
 
       <div className="mt-6">
         <Field label="Comentário opcional" icon={<Brain className="w-4 h-4" />}>
