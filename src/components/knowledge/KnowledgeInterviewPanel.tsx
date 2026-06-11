@@ -45,11 +45,7 @@ type Props = {
   setConfidence: (v: number) => void
 
 aromaticValues: Record<string, number>
-setAromaticValues: (
-  value:
-    | Record<string, number>
-    | ((prev: Record<string, number>) => Record<string, number>)
-) => void
+setAromaticValues: any
 
   
   answeredInModule: number
@@ -149,13 +145,17 @@ export default function KnowledgeInterviewPanel(props: Props) {
         {currentQuestion.food_archetype_code || currentQuestion.wine_profile_code}
       </div>
 
-      <h2 className="text-3xl font-light mb-3">
-        {currentQuestion.helper_text}
-      </h2>
+{currentQuestion.question_type !== 'wine_aromatic_profile' && (
+  <>
+    <h2 className="text-3xl font-light mb-3">
+      {currentQuestion.helper_text}
+    </h2>
 
-      <p className="text-zinc-400 text-lg mb-8">
-        {currentQuestion.question_text}
-      </p>
+    <p className="text-zinc-400 text-lg mb-8">
+      {currentQuestion.question_text}
+    </p>
+  </>
+)}
 
 {currentQuestion.question_type === 'wine_aromatic_profile' ? (
   <WineAromaticQuestionCard
@@ -165,13 +165,13 @@ export default function KnowledgeInterviewPanel(props: Props) {
       question_text: currentQuestion.question_text,
       aromatic_families: AROMATIC_FAMILIES,
     } as any}
-    values={aromaticValues ?? {}}
-onChange={(code, value) =>
-  setAromaticValues((prev) => ({
-    ...(prev ?? {}),
+values={aromaticValues ?? {}}
+onChange={(code, value) => {
+  setAromaticValues({
+    ...(aromaticValues ?? {}),
     [code]: value,
-  }))
-}
+  })
+}}
   />
 ) : (
   <>
