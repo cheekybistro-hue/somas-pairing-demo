@@ -787,60 +787,70 @@ function handleReviewModule(module: KnowledgeModule) {
       if (!selectedValue || !primaryGrape) return ''
       return `${selectedValue} | ${primaryGrape}`
     }
-
+if (currentQuestion?.question_type === 'wine_aromatic_profile') {
+  return JSON.stringify(aromaticValues)
+}
     return selectedValue.trim()
   }
 
-  function getAnswerJson() {
-    if (!currentQuestion) return {}
+function getAnswerJson() {
+  if (!currentQuestion) return {}
 
-    const base = {
-      question_type: currentQuestion.question_type,
-      food_archetype_code: currentQuestion.food_archetype_code,
-      wine_profile_code: currentQuestion.wine_profile_code,
-      descriptors: selectedDescriptors,
-      reason,
-      confidence,
-    }
+  const base = {
+    question_type: currentQuestion.question_type,
+    food_archetype_code: currentQuestion.food_archetype_code,
+    wine_profile_code: currentQuestion.wine_profile_code,
+    descriptors: selectedDescriptors,
+    reason,
+    confidence,
+  }
 
-    if (currentQuestion.question_type === 'pairing_choice') {
-      return {
-        ...base,
-        wine_profile_code: selectedWine,
-      }
-    }
-
-    if (isQualitativeRelationshipType(currentQuestion.question_type)) {
-      return {
-        ...base,
-        source_profile_code: currentQuestion.wine_profile_code,
-        similar_profile_code: selectedWine,
-        similarity_degree: similarityDegree,
-        wine_style_codes: selectedDescriptors,
-      }
-    }
-
-    if (isInternationalIdentityType(currentQuestion.question_type)) {
-      return {
-        ...base,
-        primary_region_style: selectedValue,
-        secondary_region_styles: secondaryRegionStyles,
-        primary_grape: primaryGrape,
-        secondary_grapes: secondaryGrapes,
-        wine_style_codes: selectedDescriptors,
-        reference_wine: {
-          producer: referenceProducer.trim(),
-          label: referenceLabel.trim(),
-          year: referenceYear.trim(),
-        },
-      }
-    }
-
+  if (currentQuestion.question_type === 'wine_aromatic_profile') {
     return {
       ...base,
-      value: selectedValue.trim(),
+      wine_profile_code: currentQuestion.wine_profile_code,
+      aromatic_values: aromaticValues,
     }
   }
+
+  if (currentQuestion.question_type === 'pairing_choice') {
+    return {
+      ...base,
+      wine_profile_code: selectedWine,
+    }
+  }
+
+  if (isQualitativeRelationshipType(currentQuestion.question_type)) {
+    return {
+      ...base,
+      source_profile_code: currentQuestion.wine_profile_code,
+      similar_profile_code: selectedWine,
+      similarity_degree: similarityDegree,
+      wine_style_codes: selectedDescriptors,
+    }
+  }
+
+  if (isInternationalIdentityType(currentQuestion.question_type)) {
+    return {
+      ...base,
+      primary_region_style: selectedValue,
+      secondary_region_styles: secondaryRegionStyles,
+      primary_grape: primaryGrape,
+      secondary_grapes: secondaryGrapes,
+      wine_style_codes: selectedDescriptors,
+      reference_wine: {
+        producer: referenceProducer.trim(),
+        label: referenceLabel.trim(),
+        year: referenceYear.trim(),
+      },
+    }
+  }
+
+  return {
+    ...base,
+    value: selectedValue.trim(),
+  }
+}
 
   async function saveAnswer() {
     if (!expertId || !sessionId || !currentQuestion || !selectedModule) return
@@ -882,7 +892,7 @@ function handleReviewModule(module: KnowledgeModule) {
       }
 
       setQuestionIndex(questionIndex + 1)
-      clearAnswerState()
+    setAromaticValues({})
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }, 100)
@@ -1219,7 +1229,8 @@ function handleReviewModule(module: KnowledgeModule) {
     isQualitativeRelationshipType={isQualitativeRelationshipType}
     isInternationalIdentityType={isInternationalIdentityType}
 
-    setAromaticValues={setAromaticValues}
+    aromaticValues={aromaticValues}
+setAromaticValues={setAromaticValues}
   />
   </div>
 )}
