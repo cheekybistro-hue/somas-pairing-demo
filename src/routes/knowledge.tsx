@@ -371,9 +371,6 @@ function KnowledgeInterview() {
   const [aromaticValues, setAromaticValues] =
   useState<Record<string, number>>({})
 
-  return null
-}
-
   const storyPhase = getStoryPhaseForModule(selectedModule)
   const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
  
