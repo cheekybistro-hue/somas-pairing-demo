@@ -1175,9 +1175,9 @@ function handleReviewModule(module: KnowledgeModule) {
     isQualitativeRelationshipType={isQualitativeRelationshipType}
     isInternationalIdentityType={isInternationalIdentityType}
 
-    aromaticValues={aromaticValues}
     setAromaticValues={setAromaticValues}
   />
+  </div>
 )}
         
         {stage === 'done' && (
