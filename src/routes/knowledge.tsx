@@ -807,6 +807,11 @@ function handleReviewModule(module: KnowledgeModule) {
       if (!selectedValue || !primaryGrape) return ''
       return `${selectedValue} | ${primaryGrape}`
     }
+
+if (currentQuestion?.question_type === 'dish_intelligence') {
+  return dishName.trim()
+}
+    
 if (currentQuestion?.question_type === 'wine_aromatic_profile') {
   return JSON.stringify(aromaticValues)
 }
@@ -832,6 +837,17 @@ function getAnswerJson() {
       aromatic_values: aromaticValues,
     }
   }
+
+if (currentQuestion.question_type === 'dish_intelligence') {
+  return {
+    ...base,
+    dish_name: dishName,
+    archetype_code: archetypeCode,
+    cooking_method: cookingMethod,
+    sensory_values: dishSensoryValues,
+  }
+}
+  
 
   if (currentQuestion.question_type === 'pairing_choice') {
     return {
@@ -877,10 +893,23 @@ function getAnswerJson() {
 
     const answerValue = getAnswerValue()
 
-    if (!answerValue) {
-      setError('Seleciona ou escreve uma resposta.')
-      return
-    }
+if (
+  currentQuestion.question_type === 'dish_intelligence'
+) {
+  if (
+    !dishName.trim() ||
+    !archetypeCode ||
+    !cookingMethod
+  ) {
+    setError(
+      'Preenche prato, arquétipo e método de confeção.'
+    )
+    return
+  }
+} else if (!answerValue) {
+  setError('Seleciona ou escreve uma resposta.')
+  return
+}
 
     try {
       setLoading(true)
@@ -912,7 +941,7 @@ function getAnswerJson() {
       }
 
       setQuestionIndex(questionIndex + 1)
-    setAromaticValues({})
+   clearAnswerState()
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }, 100)
