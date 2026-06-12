@@ -181,25 +181,21 @@ export default function KnowledgeInterviewPanel(props: Props) {
     setSensoryValues={setDishSensoryValues}
   />
 ) : currentQuestion.question_type === 'wine_aromatic_profile' ? (
-      
-{currentQuestion.question_type === 'wine_aromatic_profile' ? (
-<WineAromaticQuestionCard
-  question={{
-    wine_profile_code: currentQuestion.wine_profile_code,
-    wine_profile_title: currentQuestion.helper_text,
-    question_text: currentQuestion.question_text,
-    aromatic_families: AROMATIC_FAMILIES,
-  } as any}
-  values={aromaticValues ?? {}}
-  onChange={(code, value) => {
-    const nextValues = {
-      ...(aromaticValues ?? {}),
-      [code]: value,
-    }
-
-    setAromaticValues(nextValues)
-  }}
-/>
+  <WineAromaticQuestionCard
+    question={{
+      wine_profile_code: currentQuestion.wine_profile_code,
+      wine_profile_title: currentQuestion.helper_text,
+      question_text: currentQuestion.question_text,
+      aromatic_families: AROMATIC_FAMILIES,
+    } as any}
+    values={aromaticValues ?? {}}
+    onChange={(code, value) => {
+      setAromaticValues({
+        ...(aromaticValues ?? {}),
+        [code]: value,
+      })
+    }}
+  />
 ) : (
   <>
     <QuestionInput
