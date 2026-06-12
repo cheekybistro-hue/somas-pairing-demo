@@ -1,5 +1,5 @@
 import { COOKING_METHODS, DISH_DIMENSIONS } from '../../lib/knowledge/dish-intelligence-form'
-
+import { FOOD_ARCHETYPES } from '../../lib/knowledge/pairing-taxonomy'
 type Props = {
   dishName: string
   setDishName: (value: string) => void
@@ -7,6 +7,8 @@ type Props = {
   setCookingMethod: (value: string) => void
   sensoryValues: Record<string, number>
   setSensoryValues: (values: Record<string, number>) => void
+  archetypeCode: string
+  setArchetypeCode: (value: string) => void
 }
 
 export function DishQuestionCard({
@@ -16,6 +18,8 @@ export function DishQuestionCard({
   setCookingMethod,
   sensoryValues,
   setSensoryValues,
+  archetypeCode,
+  setArchetypeCode,
 }: Props) {
   return (
     <section className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6">
@@ -26,7 +30,28 @@ export function DishQuestionCard({
       <p className="text-zinc-400 mt-2">
         Indique um prato real e avalie o seu perfil sensorial.
       </p>
+<div>
+  <label className="block text-sm text-zinc-300 mb-2">
+    Arquétipo gastronómico
+  </label>
 
+  <select
+    value={archetypeCode}
+    onChange={(event) => setArchetypeCode(event.target.value)}
+    className="input"
+  >
+    <option value="">Selecionar arquétipo...</option>
+
+    {FOOD_ARCHETYPES.map((archetype) => (
+      <option
+        key={archetype.code}
+        value={archetype.code}
+      >
+        {archetype.code} — {archetype.title}
+      </option>
+    ))}
+  </select>
+</div>
       <div className="mt-6 space-y-6">
         <div>
           <label className="block text-sm text-zinc-300 mb-2">
