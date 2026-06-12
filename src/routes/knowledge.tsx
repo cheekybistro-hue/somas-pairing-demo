@@ -207,7 +207,11 @@ const similarityLevels = [
 function isQualitativeRelationshipType(questionType: string) {
   return ['qualitative_relationship', 'similar_profile', 'relationship_profile'].includes(questionType)
 }
-
+function isDishIntelligenceType(
+  questionType: string
+) {
+  return questionType === 'dish_intelligence'
+}
 const descriptorGroups = [
   {
     title: 'Frescura e Acidez',
@@ -370,7 +374,19 @@ function KnowledgeInterview() {
   const answeredInModule = currentProgress?.questions_answered ?? 0
   const [aromaticValues, setAromaticValues] =
   useState<Record<string, number>>({})
+const [dishName, setDishName] =
+  useState('')
 
+const [archetypeCode, setArchetypeCode] =
+  useState('')
+
+const [cookingMethod, setCookingMethod] =
+  useState('')
+
+const [dishSensoryValues, setDishSensoryValues] =
+  useState<Record<string, number>>({})
+const [recentAnswers, setRecentAnswers] = useState<any[]>([])
+  
 function getStoryPhaseForModule(
   module: KnowledgeModule | null
 ) {
@@ -769,6 +785,10 @@ function handleReviewModule(module: KnowledgeModule) {
     setReason('')
     setConfidence(1)
     setAromaticValues({})
+    setDishName('')
+    setArchetypeCode('')
+    setCookingMethod('')
+    setDishSensoryValues({})
   }
 
   function getAnswerValue() {
