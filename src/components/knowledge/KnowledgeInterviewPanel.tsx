@@ -2,6 +2,7 @@ import { ArrowRight, Brain } from 'lucide-react'
 import DescriptorSelector from './DescriptorSelector'
 import { WineAromaticQuestionCard } from './WineAromaticQuestionCard'
 import { AROMATIC_FAMILIES } from '../../lib/knowledge/aromatic-taxonomy'
+import { DishQuestionCard } from './DishQuestionCard'
 type Props = {
   selectedModule: any
   currentQuestion: any
@@ -59,6 +60,18 @@ setAromaticValues: any
   Field: any
   ErrorBox: any
 
+dishName: string
+setDishName: (value: string) => void
+
+archetypeCode: string
+setArchetypeCode: (value: string) => void
+
+cookingMethod: string
+setCookingMethod: (value: string) => void
+
+dishSensoryValues: Record<string, number>
+setDishSensoryValues: (values: Record<string, number>) => void
+  
   isQualitativeRelationshipType: (questionType: string) => boolean
   isInternationalIdentityType: (questionType: string) => boolean
 }
@@ -122,7 +135,16 @@ export default function KnowledgeInterviewPanel(props: Props) {
 
     isQualitativeRelationshipType,
     isInternationalIdentityType,
-  } = props
+
+    dishName,
+   setDishName,
+   archetypeCode,
+   setArchetypeCode,
+   cookingMethod,
+   setCookingMethod,
+   dishSensoryValues,
+   setDishSensoryValues,
+     } = props
 
   return (
     <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
@@ -159,6 +181,19 @@ export default function KnowledgeInterviewPanel(props: Props) {
   </>
 )}
 
+{currentQuestion.question_type === 'dish_intelligence' ? (
+  <DishQuestionCard
+    dishName={dishName}
+    setDishName={setDishName}
+    archetypeCode={archetypeCode}
+    setArchetypeCode={setArchetypeCode}
+    cookingMethod={cookingMethod}
+    setCookingMethod={setCookingMethod}
+    sensoryValues={dishSensoryValues}
+    setSensoryValues={setDishSensoryValues}
+  />
+) : currentQuestion.question_type === 'wine_aromatic_profile' ? (
+      
 {currentQuestion.question_type === 'wine_aromatic_profile' ? (
 <WineAromaticQuestionCard
   question={{
