@@ -1280,7 +1280,17 @@ if (
 
     aromaticValues={aromaticValues}
 setAromaticValues={setAromaticValues}
-  />
+  dishName={dishName}
+setDishName={setDishName}
+archetypeCode={archetypeCode}
+setArchetypeCode={setArchetypeCode}
+cookingMethod={cookingMethod}
+setCookingMethod={setCookingMethod}
+dishSensoryValues={dishSensoryValues}
+setDishSensoryValues={setDishSensoryValues}
+      
+      
+      />
   </div>
 )}
         
