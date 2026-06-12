@@ -169,18 +169,6 @@ export default function KnowledgeInterviewPanel(props: Props) {
   </div>
 )}
 
-{currentQuestion.question_type !== 'wine_aromatic_profile' && (
-  <>
-    <h2 className="text-3xl font-light mb-3">
-      {currentQuestion.helper_text}
-    </h2>
-
-    <p className="text-zinc-400 text-lg mb-8">
-      {currentQuestion.question_text}
-    </p>
-  </>
-)}
-
 {currentQuestion.question_type === 'dish_intelligence' ? (
   <DishQuestionCard
     dishName={dishName}
