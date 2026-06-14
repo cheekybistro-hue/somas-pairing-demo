@@ -935,10 +935,13 @@ if (
         [selectedModule.form_phase]: result.progress,
       }))
 
-      if (result.isComplete) {
-        setStage('done')
-        return
-      }
+if (
+  result.isComplete &&
+  questionIndex >= questions.length - 1
+) {
+  setStage('done')
+  return
+}
 
       setQuestionIndex(questionIndex + 1)
    clearAnswerState()
