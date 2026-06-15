@@ -1,26 +1,43 @@
-import { COOKING_METHODS, DISH_DIMENSIONS } from '../../lib/knowledge/dish-intelligence-form'
-import { FOOD_ARCHETYPES } from '../../lib/knowledge/pairing-taxonomy'
+import {
+  COOKING_METHODS,
+  DISH_DIMENSIONS,
+} from '../../lib/knowledge/dish-intelligence-form'
+import { DISH_SUGGESTIONS } from '../../lib/knowledge/dish-suggestions'
+
 type Props = {
+  foodArchetypeCode: string
   dishName: string
   setDishName: (value: string) => void
   cookingMethod: string
   setCookingMethod: (value: string) => void
   sensoryValues: Record<string, number>
   setSensoryValues: (values: Record<string, number>) => void
-  archetypeCode: string
-  setArchetypeCode: (value: string) => void
 }
 
 export function DishQuestionCard({
+  foodArchetypeCode,
   dishName,
   setDishName,
   cookingMethod,
   setCookingMethod,
   sensoryValues,
   setSensoryValues,
-  archetypeCode,
-  setArchetypeCode,
 }: Props) {
+  const suggestions =
+    DISH_SUGGESTIONS[foodArchetypeCode] ?? []
+
+  function selectDish(dishName: string) {
+    setDishName(dishName)
+
+    const suggestion = suggestions.find(
+      (dish) => dish.name === dishName
+    )
+
+    if (suggestion) {
+      setCookingMethod(suggestion.cookingMethod)
+    }
+  }
+
   return (
     <section className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6">
       <h2 className="text-xl font-semibold">
@@ -28,55 +45,63 @@ export function DishQuestionCard({
       </h2>
 
       <p className="text-zinc-400 mt-2">
-        Indique um prato real e avalie o seu perfil sensorial.
+        Escolha um prato representativo deste arquétipo e avalie o seu perfil sensorial.
       </p>
-<div>
-  <label className="block text-sm text-zinc-300 mb-2">
-    Arquétipo gastronómico
-  </label>
 
-  <select
-    value={archetypeCode}
-    onChange={(event) => setArchetypeCode(event.target.value)}
-    className="input"
-  >
-    <option value="">Selecionar arquétipo...</option>
-
-    {FOOD_ARCHETYPES.map((archetype) => (
-      <option
-        key={archetype.code}
-        value={archetype.code}
-      >
-        {archetype.code} — {archetype.title}
-      </option>
-    ))}
-  </select>
-</div>
       <div className="mt-6 space-y-6">
         <div>
           <label className="block text-sm text-zinc-300 mb-2">
-            Nome do prato
+            Prato sugerido
           </label>
-          <input
+
+          <select
             value={dishName}
-            onChange={(event) => setDishName(event.target.value)}
+            onChange={(event) =>
+              selectDish(event.target.value)
+            }
             className="input"
-            placeholder="Ex: Bacalhau à Brás, Polvo à Lagareiro..."
-          />
+          >
+            <option value="">
+              Selecionar prato...
+            </option>
+
+            {suggestions.map((dish) => (
+              <option
+                key={dish.name}
+                value={dish.name}
+              >
+                {dish.name}{' '}
+                {dish.origin === 'Portugal'
+                  ? '🇵🇹'
+                  : '🌍'}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* custom dish next PR */}
 
         <div>
           <label className="block text-sm text-zinc-300 mb-2">
             Método de confeção dominante
           </label>
+
           <select
             value={cookingMethod}
-            onChange={(event) => setCookingMethod(event.target.value)}
+            onChange={(event) =>
+              setCookingMethod(event.target.value)
+            }
             className="input"
           >
-            <option value="">Selecionar método...</option>
+            <option value="">
+              Selecionar método...
+            </option>
+
             {COOKING_METHODS.map((method) => (
-              <option key={method} value={method}>
+              <option
+                key={method}
+                value={method}
+              >
                 {method}
               </option>
             ))}
@@ -85,7 +110,8 @@ export function DishQuestionCard({
 
         <div className="space-y-5">
           {DISH_DIMENSIONS.map((dimension) => {
-            const currentValue = sensoryValues[dimension.code] ?? 0
+            const currentValue =
+              sensoryValues[dimension.code] ?? 0
 
             return (
               <div key={dimension.code}>
@@ -94,6 +120,7 @@ export function DishQuestionCard({
                     <div className="font-medium">
                       {dimension.name}
                     </div>
+
                     <div className="text-xs text-zinc-500">
                       {dimension.description}
                     </div>
@@ -106,7 +133,8 @@ export function DishQuestionCard({
 
                 <div className="flex gap-2 mt-2">
                   {[0, 1, 2, 3, 4, 5].map((level) => {
-                    const selected = currentValue === level
+                    const selected =
+                      currentValue === level
 
                     return (
                       <button
