@@ -63,9 +63,6 @@ setAromaticValues: any
 dishName: string
 setDishName: (value: string) => void
 
-archetypeCode: string
-setArchetypeCode: (value: string) => void
-
 cookingMethod: string
 setCookingMethod: (value: string) => void
 
@@ -138,8 +135,7 @@ export default function KnowledgeInterviewPanel(props: Props) {
 
     dishName,
    setDishName,
-   archetypeCode,
-   setArchetypeCode,
+
    cookingMethod,
    setCookingMethod,
    dishSensoryValues,
@@ -170,16 +166,17 @@ export default function KnowledgeInterviewPanel(props: Props) {
 )}
 
 {currentQuestion.question_type === 'dish_intelligence' ? (
-  <DishQuestionCard
-    dishName={dishName}
-    setDishName={setDishName}
-    archetypeCode={archetypeCode}
-    setArchetypeCode={setArchetypeCode}
-    cookingMethod={cookingMethod}
-    setCookingMethod={setCookingMethod}
-    sensoryValues={dishSensoryValues}
-    setSensoryValues={setDishSensoryValues}
-  />
+<DishQuestionCard
+  foodArchetypeCode={
+    currentQuestion.food_archetype_code
+  }
+  dishName={dishName}
+  setDishName={setDishName}
+  cookingMethod={cookingMethod}
+  setCookingMethod={setCookingMethod}
+  sensoryValues={dishSensoryValues}
+  setSensoryValues={setDishSensoryValues}
+/>
 ) : currentQuestion.question_type === 'wine_aromatic_profile' ? (
   <WineAromaticQuestionCard
     question={{
