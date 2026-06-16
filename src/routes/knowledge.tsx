@@ -503,7 +503,11 @@ if (editAnswerData) {
 const aromaticData =
   editAnswerData.aromatic_values ??
   editAnswerData.aromaticValues ??
-  null
+  (
+    editAnswerData.question_type === 'wine_aromatic_profile'
+      ? editAnswerData
+      : null
+  )
 
 if (aromaticData) {
   setAromaticValues(aromaticData)
