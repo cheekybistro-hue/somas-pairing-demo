@@ -52,5 +52,4 @@ for (const answer of data ?? []) {
 return Array.from(
   latestAnswers.values()
 )
-  return data ?? []
 }
