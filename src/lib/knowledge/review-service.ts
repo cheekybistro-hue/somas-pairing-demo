@@ -36,6 +36,21 @@ export async function loadModuleAnswers(
   if (error) {
     throw new Error(error.message)
   }
+const latestAnswers = new Map()
 
+for (const answer of data ?? []) {
+  if (
+    !latestAnswers.has(answer.question_code)
+  ) {
+    latestAnswers.set(
+      answer.question_code,
+      answer
+    )
+  }
+}
+
+return Array.from(
+  latestAnswers.values()
+)
   return data ?? []
 }
