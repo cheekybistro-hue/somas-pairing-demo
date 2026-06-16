@@ -488,9 +488,11 @@ if (editAnswerData) {
     ''
   )
 
-  setSelectedValue(
-    editAnswerData.selected_value ?? ''
-  )
+setSelectedValue(
+  editAnswerData.selected_value ??
+  editAnswerData.value ??
+  ''
+)
 
   setReason(
     editAnswerData.reason ?? ''
