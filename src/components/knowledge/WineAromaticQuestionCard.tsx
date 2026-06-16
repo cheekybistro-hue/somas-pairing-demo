@@ -1,5 +1,4 @@
-import { useState } from 'react'
-
+import { useEffect, useState } from 'react'
 import type { WineAromaticQuestion } from '../../lib/knowledge/wine-aromatic-form'
 import { WINE_PROFILES } from '../../lib/knowledge/pairing-taxonomy'
 
@@ -16,7 +15,10 @@ export function WineAromaticQuestionCard({
 }: Props) {
   const [localValues, setLocalValues] =
     useState<Record<string, number>>(values)
-
+useEffect(() => {
+  setLocalValues(values)
+}, [values])
+  
   const wineProfile = WINE_PROFILES.find(
     (profile) =>
       profile.code === question.wine_profile_code
