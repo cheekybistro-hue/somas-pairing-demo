@@ -500,14 +500,14 @@ if (editAnswerData) {
     editAnswerData.confidence ?? 1
   )
 
-  if (
-    editAnswerData.aromatic_values
-  ) {
-    setAromaticValues(
-      editAnswerData.aromatic_values
-    )
-  }
+const aromaticData =
+  editAnswerData.aromatic_values ??
+  editAnswerData.aromaticValues ??
+  null
 
+if (aromaticData) {
+  setAromaticValues(aromaticData)
+}
   if (
     editAnswerData.dish_name
   ) {
