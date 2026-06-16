@@ -433,7 +433,7 @@ function getStoryPhaseForModule(
   
   const storyPhase = getStoryPhaseForModule(selectedModule)
   const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
- 
+ console.log('EDIT DATA', editAnswerData)
   
   useEffect(() => {
     initializeAuth()
