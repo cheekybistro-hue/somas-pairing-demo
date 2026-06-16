@@ -167,9 +167,7 @@ export default function KnowledgeInterviewPanel(props: Props) {
 
 {currentQuestion.question_type === 'dish_intelligence' ? (
 <DishQuestionCard
-  foodArchetypeCode={
-    currentQuestion.food_archetype_code
-  }
+foodArchetypeCode={currentQuestion.food_archetype_code}
   dishName={dishName}
   setDishName={setDishName}
   cookingMethod={cookingMethod}
