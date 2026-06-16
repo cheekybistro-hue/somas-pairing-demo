@@ -500,6 +500,44 @@ if (editAnswerData) {
     editAnswerData.confidence ?? 1
   )
 
+if (editAnswerData.primary_region_style) {
+  setSelectedValue(editAnswerData.primary_region_style)
+}
+
+if (editAnswerData.primary_grape) {
+  setPrimaryGrape(editAnswerData.primary_grape)
+}
+
+if (editAnswerData.secondary_region_styles) {
+  setSecondaryRegionStyles(editAnswerData.secondary_region_styles)
+}
+
+if (editAnswerData.secondary_grapes) {
+  setSecondaryGrapes(editAnswerData.secondary_grapes)
+}
+
+if (editAnswerData.reference_wine) {
+  setReferenceProducer(editAnswerData.reference_wine.producer ?? '')
+  setReferenceLabel(editAnswerData.reference_wine.label ?? '')
+  setReferenceYear(editAnswerData.reference_wine.year ?? '')
+}
+
+if (editAnswerData.similar_profile_code) {
+  setSelectedWine(editAnswerData.similar_profile_code)
+}
+
+if (editAnswerData.similarity_degree) {
+  setSimilarityDegree(editAnswerData.similarity_degree)
+}
+
+if (editAnswerData.wine_style_codes) {
+  setSelectedDescriptors(editAnswerData.wine_style_codes)
+}
+
+if (editAnswerData.descriptors) {
+  setSelectedDescriptors(editAnswerData.descriptors)
+}
+  
 const aromaticData =
   editAnswerData.aromatic_values ??
   editAnswerData.aromaticValues ??
