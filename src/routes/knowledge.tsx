@@ -481,19 +481,57 @@ function getStoryPhaseForModule(
   if (targetIndex >= 0) {
   setQuestionIndex(targetIndex)
 
-  if (editAnswerData) {
-    setSelectedWine(
-      editAnswerData.wine_profile_code ?? ''
-    )
+if (editAnswerData) {
+  setSelectedWine(
+    editAnswerData.selected_wine ??
+    editAnswerData.wine_profile_code ??
+    ''
+  )
 
-    setReason(
-      editAnswerData.reason ?? ''
-    )
+  setSelectedValue(
+    editAnswerData.selected_value ?? ''
+  )
 
-    setConfidence(
-      editAnswerData.confidence ?? 1
+  setReason(
+    editAnswerData.reason ?? ''
+  )
+
+  setConfidence(
+    editAnswerData.confidence ?? 1
+  )
+
+  if (
+    editAnswerData.aromatic_values
+  ) {
+    setAromaticValues(
+      editAnswerData.aromatic_values
     )
   }
+
+  if (
+    editAnswerData.dish_name
+  ) {
+    setDishName(
+      editAnswerData.dish_name
+    )
+  }
+
+  if (
+    editAnswerData.cooking_method
+  ) {
+    setCookingMethod(
+      editAnswerData.cooking_method
+    )
+  }
+
+  if (
+    editAnswerData.sensory_values
+  ) {
+    setDishSensoryValues(
+      editAnswerData.sensory_values
+    )
+  }
+}
 
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -757,11 +795,11 @@ function handleReviewModule(module: KnowledgeModule) {
   setEditQuestionCode(answer.question_code)
 
   try {
-    setEditAnswerData(
-      answer.answer_json
-        ? JSON.parse(answer.answer_json)
-        : null
-    )
+setEditAnswerData(
+  typeof answer.answer_json === 'string'
+    ? JSON.parse(answer.answer_json)
+    : answer.answer_json
+)
   } catch {
     setEditAnswerData(null)
   }
