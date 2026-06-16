@@ -30,7 +30,10 @@ export function KnowledgeModuleCard({
   onReview,
 }: Props) {
   const answered = progress?.questions_answered ?? 0
-  const total = module.estimated_questions ?? 0
+  const total =
+  module.estimated_questions && module.estimated_questions > 0
+    ? module.estimated_questions
+    : progress?.total_questions ?? 0
 
   const percent =
     total > 0

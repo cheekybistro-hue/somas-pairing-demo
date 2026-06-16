@@ -358,10 +358,10 @@ function KnowledgeInterview() {
     return {
       name: module.module_name,
       answered: moduleProgress?.questions_answered ?? 0,
-      total:
-      moduleProgress?.total_questions ??
-      module.estimated_questions ??
-      0,
+total:
+  module.estimated_questions && module.estimated_questions > 0
+    ? module.estimated_questions
+    : moduleProgress?.total_questions ?? 0,
     }
   })
 
