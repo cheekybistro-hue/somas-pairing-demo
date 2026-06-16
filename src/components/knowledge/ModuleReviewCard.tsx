@@ -3,6 +3,7 @@ type ReviewAnswer = {
   question_code: string
   question_text: string
   answer_text: string | null
+  answer_json: any
   confidence: number | null
   created_at: string | null
 }
@@ -64,8 +65,17 @@ export function ModuleReviewCard({
               )}
             </div>
 
-<div className="mt-3 text-zinc-100">
-  {answer.answer_text ?? '-'}
+<div className="mt-3">
+  <pre className="text-xs text-zinc-300 whitespace-pre-wrap">
+    {answer.answer_text ??
+      (answer.answer_json
+        ? JSON.stringify(
+            answer.answer_json,
+            null,
+            2
+          )
+        : '-')}
+  </pre>
 </div>
 
 <div className="mt-4">
