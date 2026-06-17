@@ -489,6 +489,7 @@ if (editAnswerData) {
   )
 
 setSelectedValue(
+  editAnswerData.primary_region_style ??
   editAnswerData.selected_value ??
   editAnswerData.value ??
   ''
@@ -507,15 +508,15 @@ if (editAnswerData.primary_region_style) {
 }
 
 if (editAnswerData.primary_grape) {
-  setPrimaryGrape(editAnswerData.primary_grape)
+  setPrimaryGrape(editAnswerData.primary_grape ?? '')
 }
 
 if (editAnswerData.secondary_region_styles) {
-  setSecondaryRegionStyles(editAnswerData.secondary_region_styles)
+  setSecondaryRegionStyles(editAnswerData.secondary_region_styles ?? [])
 }
 
 if (editAnswerData.secondary_grapes) {
-  setSecondaryGrapes(editAnswerData.secondary_grapes)
+  setSecondaryGrapes(editAnswerData.secondary_grapes ?? [])
 }
 
 if (editAnswerData.reference_wine) {
