@@ -40,6 +40,9 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
+import {
+  calculateDashboardMetrics,
+} from '@/lib/knowledge/dashboard-metrics'
 
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
@@ -352,6 +355,18 @@ function KnowledgeInterview() {
 
   const currentProgress = selectedModule ? progress[selectedModule.form_phase] : null
 
+  const dashboardMetrics = useMemo(
+    () => calculateDashboardMetrics(modules, progress),
+    [modules, progress]
+  )
+
+  const contributionModules = dashboardMetrics.answersByModule.map((moduleMetric) => ({
+    name: moduleMetric.moduleName,
+    answered: moduleMetric.answered,
+    total: moduleMetric.total,
+  }))
+
+  /*
   const contributionModules = modules.map((module) => {
     const moduleProgress = progress[module.form_phase]
 
@@ -364,6 +379,7 @@ total:
     : moduleProgress?.total_questions ?? 0,
     }
   })
+  */
 
   const [reviewModule, setReviewModule] =
   useState<KnowledgeModule | null>(null)
@@ -433,7 +449,6 @@ function getStoryPhaseForModule(
   
   const storyPhase = getStoryPhaseForModule(selectedModule)
   const story = storyPhase ? getKnowledgeFormStory(storyPhase) : null
- console.log('EDIT DATA', editAnswerData)
   
   useEffect(() => {
     initializeAuth()
@@ -925,7 +940,7 @@ if (currentQuestion.question_type === 'dish_intelligence') {
   return {
     ...base,
     dish_name: dishName,
-    archetype_code: archetypeCode,
+    archetype_code: currentQuestion.food_archetype_code,
     cooking_method: cookingMethod,
     sensory_values: dishSensoryValues,
   }
@@ -981,7 +996,6 @@ if (
 ) {
   if (
     !dishName.trim() ||
-    !archetypeCode ||
     !cookingMethod
   ) {
     setError(
@@ -1235,14 +1249,14 @@ if (
                 <KnowledgeStatsCard
                   icon={<BarChart3 className="w-5 h-5" />}
                   label="Conhecimento contribuído"
-                  value={`${dashboardStats.totalAnswered} / ${dashboardStats.totalQuestions}`}
-                  helper={`${dashboardStats.percent}% concluído`}
+                  value={`${dashboardMetrics.totalAnswers} / ${dashboardMetrics.totalQuestions}`}
+                  helper={`${dashboardMetrics.coveragePercent}% concluído`}
                 />
                 <KnowledgeStatsCard
                   icon={<Target className="w-5 h-5" />}
                   label="Módulos"
-                  value={`${dashboardStats.modulesCompleted} completos`}
-                  helper={`${dashboardStats.modulesStarted} iniciados`}
+                  value={`${dashboardMetrics.completedModules}/${dashboardMetrics.totalModules} completos`}
+                  helper={`${dashboardMetrics.startedModules} iniciados`}
                 />
                 <KnowledgeStatsCard
                   icon={<Activity className="w-5 h-5" />}
@@ -1254,11 +1268,11 @@ if (
 
               <div className="mt-6">
                 <div className="h-3 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
-                  <div className="h-full bg-amber-400" style={{ width: `${dashboardStats.percent}%` }} />
+                  <div className="h-full bg-amber-400" style={{ width: `${dashboardMetrics.coveragePercent}%` }} />
                 </div>
                 <div className="mt-2 flex justify-between text-xs text-zinc-500">
                   <span>Progresso global</span>
-                  <span>{dashboardStats.percent}%</span>
+                  <span>{dashboardMetrics.coveragePercent}%</span>
                 </div>
               </div>
             </div>
