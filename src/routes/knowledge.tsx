@@ -12,6 +12,9 @@ import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
 import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
 import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
 import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
+import {
+  calculateKnowledgeGaps,
+} from '@/lib/knowledge/knowledge-gaps'
 import type {
   KnowledgeModule,
   Progress,
@@ -358,6 +361,11 @@ function KnowledgeInterview() {
   const dashboardMetrics = useMemo(
     () => calculateDashboardMetrics(modules, progress),
     [modules, progress]
+  )
+
+  const knowledgeGaps = useMemo(
+    () => calculateKnowledgeGaps(dashboardMetrics),
+    [dashboardMetrics]
   )
 
   const contributionModules = dashboardMetrics.answersByModule.map((moduleMetric) => ({
@@ -1278,69 +1286,112 @@ if (
             </div>
 
             <MyContributionsCard modules={contributionModules} />
-<div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
-  <div className="flex items-start justify-between gap-4 mb-6">
-    <div>
-      <p className="text-xs uppercase tracking-widest text-amber-400">
-        Cobertura
-      </p>
-      <h3 className="text-2xl font-semibold">
-        Cobertura por módulo
-      </h3>
-      <p className="text-zinc-400 mt-2">
-        Mostra onde o conhecimento já está a crescer e onde ainda precisamos de mais respostas.
-      </p>
-    </div>
 
-    <div className="text-right">
-      <div className="text-3xl font-semibold text-amber-400">
-        {dashboardMetrics.coveragePercent}%
-      </div>
-      <div className="text-xs text-zinc-500">
-        cobertura global
-      </div>
-    </div>
-  </div>
+            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-amber-400">
+                    Cobertura
+                  </p>
+                  <h3 className="text-2xl font-semibold">
+                    Cobertura por módulo
+                  </h3>
+                  <p className="text-zinc-400 mt-2">
+                    Mostra onde o conhecimento já está a crescer e onde ainda precisamos de mais respostas.
+                  </p>
+                </div>
 
-  <div className="space-y-4">
-    {dashboardMetrics.answersByModule.map((module) => (
-      <div key={module.formPhase}>
-        <div className="flex justify-between gap-4 text-sm mb-2">
-          <div>
-            <span className="font-medium text-zinc-100">
-              {module.moduleName}
-            </span>
-            <span className="text-zinc-500 ml-2">
-              {module.moduleCode}
-            </span>
-          </div>
+                <div className="text-right">
+                  <div className="text-3xl font-semibold text-amber-400">
+                    {dashboardMetrics.coveragePercent}%
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    cobertura global
+                  </div>
+                </div>
+              </div>
 
-          <div className="text-zinc-400">
-            {module.answered} / {module.total}
-          </div>
-        </div>
+              <div className="space-y-4">
+                {dashboardMetrics.answersByModule.map((module) => (
+                  <div key={module.formPhase}>
+                    <div className="flex justify-between gap-4 text-sm mb-2">
+                      <div>
+                        <span className="font-medium text-zinc-100">
+                          {module.moduleName}
+                        </span>
+                        <span className="text-zinc-500 ml-2">
+                          {module.moduleCode}
+                        </span>
+                      </div>
 
-        <div className="h-2 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
-          <div
-            className="h-full bg-amber-400"
-            style={{ width: `${module.percent}%` }}
-          />
-        </div>
+                      <div className="text-zinc-400">
+                        {module.answered} / {module.total}
+                      </div>
+                    </div>
 
-        <div className="flex justify-between mt-1 text-xs text-zinc-500">
-          <span>
-            {module.status === 'completed'
-              ? 'Completo'
-              : module.answered > 0
-                ? 'Em curso'
-                : 'Por iniciar'}
-          </span>
-          <span>{module.percent}%</span>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
+                    <div className="h-2 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full bg-amber-400"
+                        style={{ width: `${module.percent}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between mt-1 text-xs text-zinc-500">
+                      <span>
+                        {module.status === 'completed'
+                          ? 'Completo'
+                          : module.answered > 0
+                            ? 'Em curso'
+                            : 'Por iniciar'}
+                      </span>
+                      <span>{module.percent}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+              <p className="text-xs uppercase tracking-widest text-amber-400">
+                Gaps
+              </p>
+
+              <h3 className="text-2xl font-semibold">
+                Knowledge Gaps
+              </h3>
+
+              <p className="text-zinc-400 mt-2 mb-6">
+                Módulos com mais perguntas por responder.
+              </p>
+
+              <div className="space-y-4">
+                {knowledgeGaps.slice(0, 6).map((gap) => (
+                  <div
+                    key={gap.moduleCode}
+                    className="flex justify-between items-center border border-zinc-700 rounded-xl p-4"
+                  >
+                    <div>
+                      <div className="font-medium">
+                        {gap.moduleName}
+                      </div>
+                      <div className="text-sm text-zinc-500">
+                        {gap.moduleCode} · {gap.coveragePercent}% coberto
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-amber-400 font-semibold">
+                        {gap.missing}
+                      </div>
+                      <div className="text-xs text-zinc-500">
+                        por responder
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               <KnowledgeConsensusCard
