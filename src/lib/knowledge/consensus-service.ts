@@ -42,11 +42,8 @@ function inferQuestionType(
   )
 }
 
-export async function loadConsensusResults(): Promise<QuestionConsensusResult[]> {
-  const {
-    data: questions,
-    error: questionsError,
-  } = await supabase
+export async function loadAnswersForConsensus(): Promise<ConsensusInputAnswer[]> {
+  const { data: questions, error: questionsError } = await supabase
     .from('knowledge_questions')
     .select('question_code, question_type')
     .eq('active', true)
@@ -58,16 +55,10 @@ export async function loadConsensusResults(): Promise<QuestionConsensusResult[]>
   const questionTypes = new Map<string, string>()
 
   for (const question of (questions ?? []) as QuestionMetaRow[]) {
-    questionTypes.set(
-      question.question_code,
-      question.question_type
-    )
+    questionTypes.set(question.question_code, question.question_type)
   }
 
-  const {
-    data: answers,
-    error: answersError,
-  } = await supabase
+  const { data: answers, error: answersError } = await supabase
     .from('knowledge_answers')
     .select('question_code, answer_text, answer_json, confidence')
     .order('created_at', { ascending: false })
@@ -76,14 +67,16 @@ export async function loadConsensusResults(): Promise<QuestionConsensusResult[]>
     throw new Error(answersError.message)
   }
 
-  const inputAnswers: ConsensusInputAnswer[] =
-    ((answers ?? []) as KnowledgeAnswerRow[]).map((answer) => ({
-      question_code: answer.question_code,
-      question_type: inferQuestionType(answer, questionTypes),
-      answer_text: answer.answer_text,
-      answer_json: parseAnswerJson(answer.answer_json),
-      confidence: answer.confidence,
-    }))
+  return ((answers ?? []) as KnowledgeAnswerRow[]).map((answer) => ({
+    question_code: answer.question_code,
+    question_type: inferQuestionType(answer, questionTypes),
+    answer_text: answer.answer_text,
+    answer_json: parseAnswerJson(answer.answer_json),
+    confidence: answer.confidence,
+  }))
+}
 
+export async function loadConsensusResults(): Promise<QuestionConsensusResult[]> {
+  const inputAnswers = await loadAnswersForConsensus()
   return calculateConsensus(inputAnswers)
 }
