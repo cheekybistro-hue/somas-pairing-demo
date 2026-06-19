@@ -50,7 +50,8 @@ import {
 import {
   calculateConsensusReadiness,
 } from '@/lib/knowledge/consensus-readiness'
-
+import { ConsensusReadinessCard } from '@/components/knowledge/ConsensusReadinessCard'
+import { loadConsensusResults } from '@/lib/knowledge/consensus-service'
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
 })
@@ -419,7 +420,7 @@ const [cookingMethod, setCookingMethod] =
 const [dishSensoryValues, setDishSensoryValues] =
   useState<Record<string, number>>({})
 const [recentAnswers, setRecentAnswers] = useState<any[]>([])
-  
+const [consensusItems, setConsensusItems] = useState([])
 function getStoryPhaseForModule(
   module: KnowledgeModule | null
 ) {
@@ -493,7 +494,20 @@ function getStoryPhaseForModule(
   if (!editQuestionCode || questions.length === 0) {
     return
   }
+useEffect(() => {
+  async function loadConsensus() {
+    try {
+      const results =
+        await loadConsensusResults()
 
+      setConsensusItems(results)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  loadConsensus()
+}, [])
   const targetIndex = questions.findIndex((question) => {
     if (question.question_code) {
       return question.question_code === editQuestionCode
@@ -1409,7 +1423,9 @@ if (
       <p className="text-xs uppercase tracking-widest text-amber-400">
         Consensus Readiness
       </p>
-
+<ConsensusReadinessCard
+  items={consensusItems}
+/>
       <h3 className="text-2xl font-semibold">
         Preparação para consenso
       </h3>
