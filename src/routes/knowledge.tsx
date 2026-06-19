@@ -47,6 +47,10 @@ import {
   calculateDashboardMetrics,
 } from '@/lib/knowledge/dashboard-metrics'
 
+import {
+  calculateConsensusReadiness,
+} from '@/lib/knowledge/consensus-readiness'
+
 export const Route = createFileRoute('/knowledge')({
   component: KnowledgeInterview,
 })
@@ -367,7 +371,12 @@ function KnowledgeInterview() {
     () => calculateKnowledgeGaps(dashboardMetrics),
     [dashboardMetrics]
   )
+const consensusReadiness = useMemo(
+  () => calculateConsensusReadiness(dashboardMetrics),
+  [dashboardMetrics]
+)
 
+  
   const contributionModules = dashboardMetrics.answersByModule.map((moduleMetric) => ({
     name: moduleMetric.moduleName,
     answered: moduleMetric.answered,
@@ -1394,6 +1403,77 @@ if (
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
+<div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+  <div className="flex items-start justify-between gap-4 mb-6">
+    <div>
+      <p className="text-xs uppercase tracking-widest text-amber-400">
+        Consensus Readiness
+      </p>
+
+      <h3 className="text-2xl font-semibold">
+        Preparação para consenso
+      </h3>
+
+      <p className="text-zinc-400 mt-2">
+        Mede se já existe cobertura suficiente para começar a gerar consensos úteis.
+      </p>
+    </div>
+
+    <div className="text-right">
+      <div className="text-3xl font-semibold text-amber-400">
+        {consensusReadiness.readinessPercent}%
+      </div>
+      <div className="text-xs text-zinc-500">
+        pronto para consenso
+      </div>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="rounded-xl border border-zinc-700 p-4">
+      <div className="text-sm text-zinc-500">
+        Total de perguntas
+      </div>
+      <div className="text-2xl font-semibold mt-2">
+        {consensusReadiness.totalQuestions}
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-zinc-700 p-4">
+      <div className="text-sm text-zinc-500">
+        Respondidas
+      </div>
+      <div className="text-2xl font-semibold mt-2 text-amber-400">
+        {consensusReadiness.answeredQuestions}
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-zinc-700 p-4">
+      <div className="text-sm text-zinc-500">
+        Por responder
+      </div>
+      <div className="text-2xl font-semibold mt-2">
+        {consensusReadiness.unansweredQuestions}
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-6">
+    <div className="h-3 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
+      <div
+        className="h-full bg-amber-400"
+        style={{
+          width: `${consensusReadiness.readinessPercent}%`,
+        }}
+      />
+    </div>
+
+    <div className="mt-2 text-xs text-zinc-500">
+      Quanto maior a cobertura, mais seguro será gerar consenso automático.
+    </div>
+  </div>
+</div>
+              
               <KnowledgeConsensusCard
   internationalConsensus={internationalConsensus.map((item) => ({
     label: `${item.wine_profile_code} → ${item.region_style}`,
