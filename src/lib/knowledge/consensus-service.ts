@@ -1,164 +1,89 @@
-export type ConsensusLevel =
-  | 'none'
-  | 'weak'
-  | 'moderate'
-  | 'strong'
+import { supabase } from '../supabase'
+import {
+  calculateConsensus,
+  type ConsensusInputAnswer,
+  type QuestionConsensusResult,
+} from './consensus-engine'
 
-export type ConsensusInputAnswer = {
+type KnowledgeAnswerRow = {
   question_code: string
-  question_type: string
   answer_text: string | null
   answer_json: any
   confidence: number | null
 }
 
-export type QuestionConsensusResult = {
-  questionCode: string
-  questionType: string
-  totalResponses: number
-  topAnswer: string
-  topAnswerVotes: number
-  agreementPercent: number
-  averageConfidence: number
-  confidenceScore: number
-  consensusLevel: ConsensusLevel
+type QuestionMetaRow = {
+  question_code: string
+  question_type: string
 }
 
-export function normalizeConsensusAnswer(
-  answer: ConsensusInputAnswer
-): string {
-  const json = answer.answer_json ?? {}
+function parseAnswerJson(value: any) {
+  if (!value) return {}
 
-  if (answer.question_type === 'wine_aromatic_profile') {
-    return JSON.stringify(json.aromatic_values ?? json)
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return {}
+    }
   }
 
-  if (answer.question_type === 'dish_intelligence') {
-    return json.dish_name ?? answer.answer_text ?? ''
-  }
+  return value
+}
 
-  if (answer.question_type === 'international_identity') {
-    return [
-      json.primary_region_style,
-      json.primary_grape,
-    ]
-      .filter(Boolean)
-      .join(' | ')
-  }
-
-  if (
-    answer.question_type === 'qualitative_relationship' ||
-    answer.question_type === 'similar_profile' ||
-    answer.question_type === 'relationship_profile'
-  ) {
-    return [
-      json.similar_profile_code,
-      json.similarity_degree,
-    ]
-      .filter(Boolean)
-      .join(' | ')
-  }
-
+function inferQuestionType(
+  answer: KnowledgeAnswerRow,
+  questionTypes: Map<string, string>
+) {
   return (
-    answer.answer_text ??
-    json.value ??
-    json.wine_profile_code ??
-    ''
+    questionTypes.get(answer.question_code) ??
+    parseAnswerJson(answer.answer_json).question_type ??
+    'unknown'
   )
 }
 
-export function calculateQuestionConsensus(
-  answers: ConsensusInputAnswer[]
-): QuestionConsensusResult {
-  const validAnswers = answers
-    .map((answer) => ({
-      ...answer,
-      normalized: normalizeConsensusAnswer(answer),
-    }))
-    .filter((answer) => answer.normalized)
+export async function loadConsensusResults(): Promise<QuestionConsensusResult[]> {
+  const {
+    data: questions,
+    error: questionsError,
+  } = await supabase
+    .from('knowledge_questions')
+    .select('question_code, question_type')
+    .eq('active', true)
 
-  const counts = new Map<string, number>()
+  if (questionsError) {
+    throw new Error(questionsError.message)
+  }
 
-  for (const answer of validAnswers) {
-    counts.set(
-      answer.normalized,
-      (counts.get(answer.normalized) ?? 0) + 1
+  const questionTypes = new Map<string, string>()
+
+  for (const question of (questions ?? []) as QuestionMetaRow[]) {
+    questionTypes.set(
+      question.question_code,
+      question.question_type
     )
   }
 
-  let topAnswer = ''
-  let topAnswerVotes = 0
+  const {
+    data: answers,
+    error: answersError,
+  } = await supabase
+    .from('knowledge_answers')
+    .select('question_code, answer_text, answer_json, confidence')
+    .order('created_at', { ascending: false })
 
-  for (const [answer, votes] of counts) {
-    if (votes > topAnswerVotes) {
-      topAnswer = answer
-      topAnswerVotes = votes
-    }
+  if (answersError) {
+    throw new Error(answersError.message)
   }
 
-  const totalResponses = validAnswers.length
+  const inputAnswers: ConsensusInputAnswer[] =
+    ((answers ?? []) as KnowledgeAnswerRow[]).map((answer) => ({
+      question_code: answer.question_code,
+      question_type: inferQuestionType(answer, questionTypes),
+      answer_text: answer.answer_text,
+      answer_json: parseAnswerJson(answer.answer_json),
+      confidence: answer.confidence,
+    }))
 
-  const agreementPercent =
-    totalResponses > 0
-      ? Math.round((topAnswerVotes / totalResponses) * 100)
-      : 0
-
-  const confidenceValues = validAnswers
-    .map((answer) => answer.confidence ?? 0)
-    .filter((value) => value > 0)
-
-  const averageConfidence =
-    confidenceValues.length > 0
-      ? Math.round(
-          (confidenceValues.reduce((sum, value) => sum + value, 0) /
-            confidenceValues.length) *
-            100
-        )
-      : 0
-
-  const confidenceScore = Math.round(
-    agreementPercent *
-      Math.min(totalResponses / 10, 1) *
-      (averageConfidence / 100)
-  )
-
-  let consensusLevel: ConsensusLevel = 'none'
-
-  if (totalResponses >= 3 && agreementPercent >= 80) {
-    consensusLevel = 'strong'
-  } else if (totalResponses >= 3 && agreementPercent >= 60) {
-    consensusLevel = 'moderate'
-  } else if (totalResponses >= 2 && agreementPercent >= 40) {
-    consensusLevel = 'weak'
-  }
-
-  return {
-    questionCode: answers[0]?.question_code ?? '',
-    questionType: answers[0]?.question_type ?? 'unknown',
-    totalResponses,
-    topAnswer,
-    topAnswerVotes,
-    agreementPercent,
-    averageConfidence,
-    confidenceScore,
-    consensusLevel,
-  }
-}
-
-export function calculateConsensus(
-  answers: ConsensusInputAnswer[]
-): QuestionConsensusResult[] {
-  const grouped = new Map<string, ConsensusInputAnswer[]>()
-
-  for (const answer of answers) {
-    if (!grouped.has(answer.question_code)) {
-      grouped.set(answer.question_code, [])
-    }
-
-    grouped.get(answer.question_code)!.push(answer)
-  }
-
-  return Array.from(grouped.values())
-    .map(calculateQuestionConsensus)
-    .sort((a, b) => b.confidenceScore - a.confidenceScore)
+  return calculateConsensus(inputAnswers)
 }
