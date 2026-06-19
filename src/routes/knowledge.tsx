@@ -490,11 +490,7 @@ function getStoryPhaseForModule(
     }
   }, [])
 
-  useEffect(() => {
-  if (!editQuestionCode || questions.length === 0) {
-    return
-  }
-useEffect(() => {
+    useEffect(() => {
   async function loadConsensus() {
     try {
       const results =
@@ -507,8 +503,14 @@ useEffect(() => {
   }
 
   loadConsensus()
-}, [])
-  const targetIndex = questions.findIndex((question) => {
+      }, [])
+  
+  useEffect(() => {
+  if (!editQuestionCode || questions.length === 0) {
+    return
+  }
+    
+     const targetIndex = questions.findIndex((question) => {
     if (question.question_code) {
       return question.question_code === editQuestionCode
     }
@@ -1414,7 +1416,9 @@ if (
                 ))}
               </div>
             </div>
-
+<ConsensusReadinessCard
+  items={consensusItems}
+/>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
@@ -1423,9 +1427,6 @@ if (
       <p className="text-xs uppercase tracking-widest text-amber-400">
         Consensus Readiness
       </p>
-<ConsensusReadinessCard
-  items={consensusItems}
-/>
       <h3 className="text-2xl font-semibold">
         Preparação para consenso
       </h3>
