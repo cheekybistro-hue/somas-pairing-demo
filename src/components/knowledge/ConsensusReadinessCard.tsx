@@ -14,12 +14,15 @@ type Props = {
 export function ConsensusReadinessCard({
   items,
 }: Props) {
-  const strongest = items
-    .filter(
-      (item) =>
-        item.consensusLevel === 'strong'
-    )
-    .slice(0, 5)
+const strongest = items
+  .filter((item) => item.totalResponses > 0)
+  .sort(
+    (a, b) =>
+      b.confidenceScore - a.confidenceScore ||
+      b.agreementPercent - a.agreementPercent ||
+      b.totalResponses - a.totalResponses
+  )
+  .slice(0, 8)
 
   return (
     <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
@@ -28,17 +31,17 @@ export function ConsensusReadinessCard({
       </p>
 
       <h3 className="text-2xl font-semibold">
-        Strongest Consensus
+        Consensus Preview
       </h3>
 
       <p className="text-zinc-400 mt-2 mb-6">
-        Perguntas com maior acordo entre especialistas.
+        Primeiros consensos calculados a partir das respostas recolhidas.
       </p>
 
       <div className="space-y-4">
         {strongest.length === 0 && (
           <div className="text-zinc-500">
-            Ainda não existem consensos fortes.
+            Ainda não existem respostas suficientes para calcular consensos.
           </div>
         )}
 
@@ -55,6 +58,10 @@ export function ConsensusReadinessCard({
 
                 <div className="text-sm text-zinc-400 mt-1">
                   {item.topAnswer}
+                </div>
+                
+                <div className="text-xs text-zinc-500 mt-1">
+                {item.totalResponses} resposta(s) · nível {item.consensusLevel} · score {item.confidenceScore}
                 </div>
               </div>
 
