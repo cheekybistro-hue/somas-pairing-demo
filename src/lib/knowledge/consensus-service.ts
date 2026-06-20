@@ -77,20 +77,10 @@ export async function loadAnswersForConsensus(): Promise<ConsensusInputAnswer[]>
 }
 
 export async function loadConsensusResults(): Promise<QuestionConsensusResult[]> {
-  const inputAnswers = await loadAnswersForConsensus()
+  const inputAnswers =
+    await loadAnswersForConsensus()
 
-  console.log(
-    'CONSENSUS INPUT ANSWERS',
-    inputAnswers.length
+  return calculateConsensus(
+    inputAnswers
   )
-
-  const results =
-    calculateConsensus(inputAnswers)
-
-  console.log(
-    'CONSENSUS RESULTS',
-    results
-  )
-
-  return results
 }
