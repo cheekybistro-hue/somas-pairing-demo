@@ -12,6 +12,11 @@ import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
 import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
 import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
 import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
+import { buildConsensusDocuments }
+from '@/lib/knowledge/consensus-documents'
+
+import { ConsensusDocumentsCard }
+from '@/components/knowledge/ConsensusDocumentsCard'
 import {
   calculateKnowledgeGaps,
 } from '@/lib/knowledge/knowledge-gaps'
@@ -379,6 +384,9 @@ const consensusReadiness = useMemo(
     total: moduleMetric.total,
   }))
 
+  const consensusDocuments =
+  buildConsensusDocuments(consensusItems)
+  
   /*
   const contributionModules = modules.map((module) => {
     const moduleProgress = progress[module.form_phase]
@@ -660,8 +668,8 @@ if (aromaticData) {
     setSessionId(null)
     setModules([])
     setProgress({})
-    setInternationalConsensus([])
-    setProfileConsensus([])
+    setInternational([])
+    setProfile([])
     setSelectedModule(null)
     setQuestions([])
     setQuestionIndex(0)
@@ -1404,8 +1412,8 @@ if (
                 ))}
               </div>
             </div>
-<ConsensusReadinessCard
-  items={consensusItems}
+<ReadinessCard
+  items={Items}
 />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -1413,7 +1421,7 @@ if (
   <div className="flex items-start justify-between gap-4 mb-6">
     <div>
       <p className="text-xs uppercase tracking-widest text-amber-400">
-        Consensus Readiness
+         Readiness
       </p>
       <h3 className="text-2xl font-semibold">
         Preparação para consenso
@@ -1426,7 +1434,7 @@ if (
 
     <div className="text-right">
       <div className="text-3xl font-semibold text-amber-400">
-        {consensusReadiness.readinessPercent}%
+        {Readiness.readinessPercent}%
       </div>
       <div className="text-xs text-zinc-500">
         pronto para consenso
@@ -1440,7 +1448,7 @@ if (
         Total de perguntas
       </div>
       <div className="text-2xl font-semibold mt-2">
-        {consensusReadiness.totalQuestions}
+        {Readiness.totalQuestions}
       </div>
     </div>
 
@@ -1449,7 +1457,7 @@ if (
         Respondidas
       </div>
       <div className="text-2xl font-semibold mt-2 text-amber-400">
-        {consensusReadiness.answeredQuestions}
+        {Readiness.answeredQuestions}
       </div>
     </div>
 
@@ -1458,7 +1466,7 @@ if (
         Por responder
       </div>
       <div className="text-2xl font-semibold mt-2">
-        {consensusReadiness.unansweredQuestions}
+        {Readiness.unansweredQuestions}
       </div>
     </div>
   </div>
@@ -1468,7 +1476,7 @@ if (
       <div
         className="h-full bg-amber-400"
         style={{
-          width: `${consensusReadiness.readinessPercent}%`,
+          width: `${Readiness.readinessPercent}%`,
         }}
       />
     </div>
