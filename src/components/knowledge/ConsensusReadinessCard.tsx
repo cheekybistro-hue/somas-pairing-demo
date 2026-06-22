@@ -57,17 +57,17 @@ const strongest = items
                 </div>
 
                 <div className="text-sm text-zinc-400 mt-1">
-                  {item.topAnswer}
+                  {String(item.topAnswer)}
                 </div>
                 
                 <div className="text-xs text-zinc-500 mt-1">
-                {item.totalResponses} resposta(s) · nível {item.consensusLevel} · score {item.confidenceScore}
+                {Number(item.totalResponses)} resposta(s) · nível {String(item.consensusLevel)} · score {Number(item.confidenceScore)}
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-amber-400 font-semibold">
-                  {item.agreementPercent}%
+                  {Number(item.agreementPercent)}%
                 </div>
 
                 <div className="text-xs text-zinc-500">
