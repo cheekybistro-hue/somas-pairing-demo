@@ -18,13 +18,10 @@ import {
 import type {
   KnowledgeModule,
   Progress,
-  InternationalConsensus,
-  ProfileConsensus,
   Question,
 } from '@/lib/knowledge/knowledge-types'
 import {
   loadModulesAndProgress,
-  loadConsensusInsights,
   startKnowledgeModule,
   saveKnowledgeAnswer,
 } from '@/lib/knowledge/knowledge-service'
@@ -337,8 +334,6 @@ function KnowledgeInterview() {
 
   const [modules, setModules] = useState<KnowledgeModule[]>([])
   const [progress, setProgress] = useState<Record<string, Progress>>({})
-  const [internationalConsensus, setInternationalConsensus] = useState<InternationalConsensus[]>([])
-  const [profileConsensus, setProfileConsensus] = useState<ProfileConsensus[]>([])
   const [selectedModule, setSelectedModule] = useState<KnowledgeModule | null>(null)
 
   const [questions, setQuestions] = useState<Question[]>([])
@@ -772,17 +767,7 @@ if (aromaticData) {
     setModules(result.modules)
     setProgress(result.progress)
 
-    const consensus =
-      await loadConsensusInsights()
-
-    setInternationalConsensus(
-      consensus.internationalConsensus
-    )
-
-    setProfileConsensus(
-      consensus.profileConsensus
-    )
-
+   
     const {
       data: answersData,
       error: answersError,
