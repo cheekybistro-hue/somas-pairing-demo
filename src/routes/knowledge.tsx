@@ -495,7 +495,10 @@ function getStoryPhaseForModule(
     try {
       const results =
         await loadConsensusResults()
-
+console.log(
+  'CONSENSUS RESULTS FULL',
+  JSON.stringify(results, null, 2)
+)
       setConsensusItems(results)
     } catch (error) {
       console.error(error)
