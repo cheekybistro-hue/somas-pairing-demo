@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
-//import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
+import KnowledgeConsensusCard from '@/components/knowledge/KnowledgeConsensusCard'
 import KnowledgeStatsCard from '@/components/knowledge/KnowledgeStatsCard'
 import KnowledgeProfileForm from '@/components/knowledge/KnowledgeProfileForm'
 import DescriptorSelector from '@/components/knowledge/DescriptorSelector'
@@ -1493,18 +1493,18 @@ if (
     </div>
   </div>
 </div>
-              
-// <KnowledgeConsensusCard
-//  internationalConsensus={internationalConsensus.map((item) => ({
-//    label: `${item.wine_profile_code} → ${item.region_style}`,
-//    value: item.region_style,
-//    votes: item.votes,
-//  }))}
-//  profileConsensus={profileConsensus.map((item) => ({
-//    label: `${item.source_profile} → ${item.target_profile}`,
- //   value: item.target_profile,
-//    votes: item.votes,
-//  }))}
+               
+ <KnowledgeConsensusCard
+  internationalConsensus={internationalConsensus.map((item) => ({
+    label: `${item.wine_profile_code} → ${item.region_style}`,
+    value: item.region_style,
+    votes: item.votes,
+  }))}
+  profileConsensus={profileConsensus.map((item) => ({
+    label: `${item.source_profile} → ${item.target_profile}`,
+    value: item.target_profile,
+    votes: item.votes,
+  }))}
 />
 
 <KnowledgeRecommendationCard
