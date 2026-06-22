@@ -12,11 +12,9 @@ import { KnowledgeStoryCard } from '../components/knowledge/KnowledgeStoryCard'
 import { getKnowledgeFormStory } from '../lib/knowledge/form-storytelling'
 import { MyContributionsCard } from '../components/knowledge/MyContributionsCard'
 import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
-import { buildConsensusDocuments }
-from '@/lib/knowledge/consensus-documents'
-
-import { ConsensusDocumentsCard }
-from '@/components/knowledge/ConsensusDocumentsCard'
+import { buildConsensusDocuments } from '@/lib/knowledge/consensus-documents'
+import { ConsensusDocumentsCard } from '@/components/knowledge/ConsensusDocumentsCard'
+import type { QuestionConsensusResult } from '@/lib/knowledge/consensus-engine'
 import {
   calculateKnowledgeGaps,
 } from '@/lib/knowledge/knowledge-gaps'
@@ -384,9 +382,7 @@ const consensusReadiness = useMemo(
     total: moduleMetric.total,
   }))
 
-  const consensusDocuments =
-  buildConsensusDocuments(consensusItems)
-  
+ 
   /*
   const contributionModules = modules.map((module) => {
     const moduleProgress = progress[module.form_phase]
@@ -423,7 +419,13 @@ const [cookingMethod, setCookingMethod] =
 const [dishSensoryValues, setDishSensoryValues] =
   useState<Record<string, number>>({})
 const [recentAnswers, setRecentAnswers] = useState<any[]>([])
-const [consensusItems, setConsensusItems] = useState([])
+const [consensusItems, setConsensusItems] =
+  useState<QuestionConsensusResult[]>([])
+
+const consensusDocuments = useMemo(
+  () => buildConsensusDocuments(consensusItems),
+  [consensusItems]
+)
 function getStoryPhaseForModule(
   module: KnowledgeModule | null
 ) {
@@ -498,10 +500,7 @@ function getStoryPhaseForModule(
     try {
       const results =
         await loadConsensusResults()
-console.log(
-  'CONSENSUS RESULTS FULL',
-  JSON.stringify(results, null, 2)
-)
+
       setConsensusItems(results)
     } catch (error) {
       console.error(error)
@@ -1412,8 +1411,13 @@ if (
                 ))}
               </div>
             </div>
-<ReadinessCard
-  items={Items}
+            
+<ConsensusReadinessCard
+  items={consensusItems}
+/>
+
+<ConsensusDocumentsCard
+  documents={consensusDocuments}
 />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -1434,7 +1438,7 @@ if (
 
     <div className="text-right">
       <div className="text-3xl font-semibold text-amber-400">
-        {Readiness.readinessPercent}%
+        {consensusReadiness.readinessPercent}%
       </div>
       <div className="text-xs text-zinc-500">
         pronto para consenso
@@ -1448,7 +1452,7 @@ if (
         Total de perguntas
       </div>
       <div className="text-2xl font-semibold mt-2">
-        {Readiness.totalQuestions}
+        {consensusReadiness.totalQuestions}
       </div>
     </div>
 
@@ -1457,7 +1461,7 @@ if (
         Respondidas
       </div>
       <div className="text-2xl font-semibold mt-2 text-amber-400">
-        {Readiness.answeredQuestions}
+        {consensusReadiness.answeredQuestions}
       </div>
     </div>
 
@@ -1466,7 +1470,7 @@ if (
         Por responder
       </div>
       <div className="text-2xl font-semibold mt-2">
-        {Readiness.unansweredQuestions}
+        {consensusReadiness.unansweredQuestions}
       </div>
     </div>
   </div>
@@ -1476,7 +1480,7 @@ if (
       <div
         className="h-full bg-amber-400"
         style={{
-          width: `${Readiness.readinessPercent}%`,
+          width: `${consensusReadiness.readinessPercent}%`,
         }}
       />
     </div>
