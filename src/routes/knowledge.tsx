@@ -1425,9 +1425,12 @@ if (
 <ConsensusDocumentsCard
   documents={consensusDocuments}
 />
-   
+
+<EmbeddingDocumentsCard
+  documents={embeddingDocuments}
 />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
   <div className="flex items-start justify-between gap-4 mb-6">
