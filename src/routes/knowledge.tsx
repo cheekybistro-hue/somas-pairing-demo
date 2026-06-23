@@ -15,6 +15,8 @@ import { ModuleReviewPage } from '../components/knowledge/ModuleReviewPage'
 import { buildConsensusDocuments } from '@/lib/knowledge/consensus-documents'
 import { ConsensusDocumentsCard } from '@/components/knowledge/ConsensusDocumentsCard'
 import type { QuestionConsensusResult } from '@/lib/knowledge/consensus-engine'
+import { buildEmbeddingDocuments } from '@/lib/knowledge/embedding-pipeline'
+import { EmbeddingDocumentsCard } from '@/components/knowledge/EmbeddingDocumentsCard'
 import {
   calculateKnowledgeGaps,
 } from '@/lib/knowledge/knowledge-gaps'
@@ -1418,6 +1420,9 @@ if (
 
 <ConsensusDocumentsCard
   documents={consensusDocuments}
+/>
+            <EmbeddingDocumentsCard
+  documents={embeddingDocuments}
 />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
