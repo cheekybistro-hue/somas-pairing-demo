@@ -428,6 +428,10 @@ const consensusDocuments = useMemo(
   () => buildConsensusDocuments(consensusItems),
   [consensusItems]
 )
+  const embeddingDocuments = useMemo(
+  () => buildEmbeddingDocuments(consensusDocuments),
+  [consensusDocuments]
+)
 function getStoryPhaseForModule(
   module: KnowledgeModule | null
 ) {
