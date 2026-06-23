@@ -1498,10 +1498,8 @@ if (
     </div>
   </div>
 </div>
-               
-         <EmbeddingDocumentsCard
-  documents={embeddingDocuments}
 
+              
 <KnowledgeRecommendationCard
   recommendation={nextRecommendation}
   onContinue={startModule}
