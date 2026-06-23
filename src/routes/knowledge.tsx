@@ -17,6 +17,8 @@ import { ConsensusDocumentsCard } from '@/components/knowledge/ConsensusDocument
 import type { QuestionConsensusResult } from '@/lib/knowledge/consensus-engine'
 import { buildEmbeddingDocuments } from '@/lib/knowledge/embedding-pipeline'
 import { EmbeddingDocumentsCard } from '@/components/knowledge/EmbeddingDocumentsCard'
+import { buildKnowledgeChunks } from '@/lib/knowledge/chunking-pipeline'
+import { KnowledgeChunksCard } from '@/components/knowledge/KnowledgeChunksCard'
 import {
   calculateKnowledgeGaps,
 } from '@/lib/knowledge/knowledge-gaps'
@@ -432,6 +434,10 @@ const embeddingDocuments = useMemo(
   () => buildEmbeddingDocuments(consensusDocuments),
   [consensusDocuments]
 )
+const knowledgeChunks = useMemo(
+  () => buildKnowledgeChunks(embeddingDocuments),
+  [embeddingDocuments]
+) 
 function getStoryPhaseForModule(
   module: KnowledgeModule | null
 ) {
@@ -1429,7 +1435,9 @@ if (
 <EmbeddingDocumentsCard
   documents={embeddingDocuments}
 />
-
+<KnowledgeChunksCard
+  chunks={knowledgeChunks}
+/>
 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
