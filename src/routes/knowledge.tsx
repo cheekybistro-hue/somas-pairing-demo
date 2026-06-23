@@ -428,7 +428,7 @@ const consensusDocuments = useMemo(
   () => buildConsensusDocuments(consensusItems),
   [consensusItems]
 )
-  const embeddingDocuments = useMemo(
+const embeddingDocuments = useMemo(
   () => buildEmbeddingDocuments(consensusDocuments),
   [consensusDocuments]
 )
