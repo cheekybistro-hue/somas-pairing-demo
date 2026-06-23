@@ -1421,8 +1421,7 @@ if (
 <ConsensusDocumentsCard
   documents={consensusDocuments}
 />
-            <EmbeddingDocumentsCard
-  documents={embeddingDocuments}
+   
 />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -1496,7 +1495,8 @@ if (
   </div>
 </div>
                
-
+         <EmbeddingDocumentsCard
+  documents={embeddingDocuments}
 
 <KnowledgeRecommendationCard
   recommendation={nextRecommendation}
