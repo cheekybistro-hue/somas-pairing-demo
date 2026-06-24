@@ -1,0 +1,29 @@
+import { buildConsensusDocuments } from './consensus-documents'
+import { buildEmbeddingDocuments } from './embedding-pipeline'
+import { buildKnowledgeChunks } from './chunking-pipeline'
+import { loadConsensusResults } from './consensus-service'
+import { savePendingEmbeddings } from './embedding-persistence'
+
+export async function runEmbeddingPreparationJob() {
+  const consensusResults = await loadConsensusResults()
+
+  const consensusDocuments =
+    buildConsensusDocuments(consensusResults)
+
+  const embeddingDocuments =
+    buildEmbeddingDocuments(consensusDocuments)
+
+  const chunks =
+    buildKnowledgeChunks(embeddingDocuments)
+
+  const saved =
+    await savePendingEmbeddings(chunks)
+
+  return {
+    consensusResults: consensusResults.length,
+    consensusDocuments: consensusDocuments.length,
+    embeddingDocuments: embeddingDocuments.length,
+    chunks: chunks.length,
+    saved,
+  }
+}
