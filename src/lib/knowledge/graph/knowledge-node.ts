@@ -1,0 +1,11 @@
+export type KnowledgeNodeType =
+  | 'wine'
+  | 'producer'
+  | 'region'
+  | 'grape'
+  | 'dish'
+  | 'market'
+  | 'passport'
+  | 'aromatic_profile'
+  | 'structural_profile'
+  | 'consensus'
