@@ -15,4 +15,5 @@ export interface RetrievalEvidence {
   content: string
   source: string
   metadata: Record<string, unknown>
+  retrievedAt: string
 }
