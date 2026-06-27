@@ -1,14 +1,18 @@
-import type {
-  RetrievalEvidence
-} from './retrieval-result'
+export type RetrievalEvidenceType =
+  | 'semantic_chunk'
+  | 'consensus'
+  | 'graph_relation'
+  | 'passport'
+  | 'market_signal'
 
-import type {
-  RetrievalRequest
-} from './retrieval-types'
-
-export interface SemanticRetrieval {
-
-  retrieve(
-    request: RetrievalRequest
-  ): Promise<RetrievalEvidence[]>
+export interface RetrievalEvidence {
+  id: string
+  type: RetrievalEvidenceType
+  chunkId?: string
+  documentId?: string
+  similarity?: number
+  confidence?: number
+  content: string
+  source: string
+  metadata: Record<string, unknown>
 }
