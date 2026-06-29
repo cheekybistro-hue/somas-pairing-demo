@@ -62,6 +62,13 @@ function AdminHubPage() {
       href: '/dev/answer',
       label: 'Abrir assistente',
     },
+    {
+  title: 'Knowledge Operations',
+  description:
+    'Gerar Knowledge Passports para alimentar o SomAS Core Decision Engine.',
+  href: '/admin/operations',
+  label: 'Abrir operações',
+    },
   ]
 
   return (
