@@ -1,4 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import {
+  Outlet,
+  createFileRoute,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
@@ -317,6 +323,18 @@ const portugueseGrapes = [
 ]
 
 function KnowledgeInterview() {
+  const navigate = useNavigate()
+
+  const isReviewRoute = useRouterState({
+    select: (state) =>
+      state.location.pathname.startsWith('/knowledge/review/'),
+  })
+
+  if (isReviewRoute) {
+    return <Outlet />
+  }
+  
+  
   const [stage, setStage] = useState<Stage>('auth')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [authEmail, setAuthEmail] = useState('')
