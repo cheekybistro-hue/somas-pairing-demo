@@ -1,4 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import {
+  Outlet,
+  createFileRoute,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
@@ -317,16 +322,13 @@ const portugueseGrapes = [
 ]
 
 function KnowledgeInterview() {
-  const [stage, setStage] = useState<Stage>('auth')
-  const [authMode, setAuthMode] = useState<AuthMode>('login')
-  const [authEmail, setAuthEmail] = useState('')
+  const navigate = useNavigate()
+
+  const isReviewRoute = useRouterState({
+    select: (state) =>
+      state.location.pathname.startsWith('/knowledge/review/'),
   })
 
-  if (isReviewRoute) {
-    return <Outlet />
-  }
-  
-  
   const [stage, setStage] = useState<Stage>('auth')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [authEmail, setAuthEmail] = useState('')
@@ -334,7 +336,7 @@ function KnowledgeInterview() {
   const [authMessage, setAuthMessage] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const navigate = useNavigate()
+
   const [name, setName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -896,7 +898,12 @@ if (aromaticData) {
 
   
 function handleReviewModule(module: KnowledgeModule) {
-  setReviewModule(module)
+  void navigate({
+    to: '/knowledge/review/$moduleCode',
+    params: {
+      moduleCode: module.module_code,
+    },
+  })
 }
 
   function handleEditAnswer(answer: any) {
@@ -1169,6 +1176,10 @@ if (
       module: next.module,
     }
   }, [modules, progress])
+
+  if (isReviewRoute) {
+    return <Outlet />
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
