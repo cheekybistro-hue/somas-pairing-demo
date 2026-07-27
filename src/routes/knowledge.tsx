@@ -317,11 +317,9 @@ const portugueseGrapes = [
 ]
 
 function KnowledgeInterview() {
-  const navigate = useNavigate()
-
-  const isReviewRoute = useRouterState({
-    select: (state) =>
-      state.location.pathname.startsWith('/knowledge/review/'),
+  const [stage, setStage] = useState<Stage>('auth')
+  const [authMode, setAuthMode] = useState<AuthMode>('login')
+  const [authEmail, setAuthEmail] = useState('')
   })
 
   if (isReviewRoute) {
