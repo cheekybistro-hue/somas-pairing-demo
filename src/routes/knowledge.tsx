@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
@@ -324,7 +324,7 @@ function KnowledgeInterview() {
   const [authMessage, setAuthMessage] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
-
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -886,7 +886,12 @@ if (aromaticData) {
 
   
 function handleReviewModule(module: KnowledgeModule) {
-  setReviewModule(module)
+  void navigate({
+    to: '/knowledge/review/$moduleCode',
+    params: {
+      moduleCode: module.module_code,
+    },
+  })
 }
 
   function handleEditAnswer(answer: any) {
