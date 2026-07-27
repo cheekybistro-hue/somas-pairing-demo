@@ -1181,6 +1181,48 @@ if (
     return <Outlet />
   }
 
+const debugParams =
+  typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search)
+    : null
+
+if (
+  debugParams?.get('module') &&
+  debugParams?.get('edit')
+) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <div className="rounded-2xl border border-amber-500/40 bg-zinc-900/70 p-8">
+          <p className="mb-2 text-xs uppercase tracking-widest text-amber-400">
+            Debug PR10.3
+          </p>
+
+          <h1 className="mb-4 text-2xl font-light">
+            O /knowledge reconheceu o pedido de edição
+          </h1>
+
+          <div className="space-y-2 text-zinc-300">
+            <p>
+              <strong>Módulo:</strong> {debugParams.get('module')}
+            </p>
+            <p>
+              <strong>Pergunta:</strong> {debugParams.get('edit')}
+            </p>
+          </div>
+
+          <p className="mt-6 text-sm text-zinc-500">
+            Se estás a ver esta mensagem, o ficheiro knowledge.tsx correto está em produção.
+            O próximo passo é ligar este estado ao arranque automático do formulário.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
      
