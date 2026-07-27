@@ -904,12 +904,7 @@ if (aromaticData) {
 
   
 function handleReviewModule(module: KnowledgeModule) {
-  void navigate({
-    to: '/knowledge/review/$moduleCode',
-    params: {
-      moduleCode: module.module_code,
-    },
-  })
+  setReviewModule(module)
 }
 
   function handleEditAnswer(answer: any) {
