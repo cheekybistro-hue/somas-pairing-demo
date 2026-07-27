@@ -1,10 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  Outlet,
-  createFileRoute,
-  useNavigate,
-  useRouterState,
-} from '@tanstack/react-router'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import KnowledgeRecommendationCard from '@/components/knowledge/KnowledgeRecommendationCard'
