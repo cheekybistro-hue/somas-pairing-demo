@@ -101,20 +101,31 @@ function KnowledgeModuleReviewRoute() {
 
   return (
     <ReviewShell>
-      <ModuleReviewPage
-        expertId={expertId}
-        formPhase={module.form_phase}
-        moduleName={module.module_name}
-        onBack={() => {
-          void navigate({ to: '/knowledge' })
-        }}
-        onContinue={() => {
-          void navigate({ to: '/knowledge' })
-        }}
-        onEdit={() => {
-          void navigate({ to: '/knowledge' })
-        }}
-      />
+<ModuleReviewPage
+  expertId={expertId}
+  formPhase={module.form_phase}
+  moduleName={module.module_name}
+  onBack={() => {
+    void navigate({ to: '/knowledge' })
+  }}
+  onContinue={() => {
+    void navigate({
+      to: '/knowledge',
+      search: {
+        module: module.module_code,
+      },
+    })
+  }}
+  onEdit={(answer) => {
+    void navigate({
+      to: '/knowledge',
+      search: {
+        module: module.module_code,
+        edit: answer.question_code,
+      },
+    })
+  }}
+/>
     </ReviewShell>
   )
 }
