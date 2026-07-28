@@ -609,7 +609,6 @@ function getStoryPhaseForModule(
       setPendingEditRequest(null)
 
       await startModule(targetModule)
-      window.history.replaceState({}, '', '/knowledge')
     }
 
     openPendingEditRequest()
@@ -1465,204 +1464,52 @@ if (pendingEditRequest || (hasReviewEditParams && stage !== 'interview' && !erro
               </div>
             </div>
 
-            <MyContributionsCard modules={contributionModules} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <KnowledgeRecommendationCard
+                recommendation={nextRecommendation}
+                onContinue={startModule}
+              />
 
-            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-amber-400">
-                    Cobertura
-                  </p>
-                  <h3 className="text-2xl font-semibold">
-                    Cobertura por módulo
-                  </h3>
-                  <p className="text-zinc-400 mt-2">
-                    Mostra onde o conhecimento já está a crescer e onde ainda precisamos de mais respostas.
-                  </p>
-                </div>
+              <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
+                <p className="text-xs uppercase tracking-widest text-amber-400">
+                  Participação
+                </p>
 
-                <div className="text-right">
-                  <div className="text-3xl font-semibold text-amber-400">
-                    {dashboardMetrics.coveragePercent}%
-                  </div>
-                  <div className="text-xs text-zinc-500">
-                    cobertura global
-                  </div>
-                </div>
-              </div>
+                <h3 className="text-2xl font-semibold mt-2">
+                  A tua contribuição
+                </h3>
 
-              <div className="space-y-4">
-                {dashboardMetrics.answersByModule.map((module) => (
-                  <div key={module.formPhase}>
-                    <div className="flex justify-between gap-4 text-sm mb-2">
+                <p className="text-zinc-400 mt-2">
+                  {dashboardMetrics.totalAnswers} respostas em {dashboardMetrics.startedModules} módulos iniciados.
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  {dashboardMetrics.answersByModule.map((module) => (
+                    <div
+                      key={module.formPhase}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-zinc-700 bg-zinc-900/40 px-4 py-3"
+                    >
                       <div>
-                        <span className="font-medium text-zinc-100">
+                        <div className="font-medium text-zinc-100">
                           {module.moduleName}
-                        </span>
-                        <span className="text-zinc-500 ml-2">
+                        </div>
+                        <div className="text-xs text-zinc-500">
                           {module.moduleCode}
-                        </span>
+                        </div>
                       </div>
 
-                      <div className="text-zinc-400">
-                        {module.answered} / {module.total}
+                      <div className="text-right">
+                        <div className="font-semibold text-amber-400">
+                          {module.answered}
+                        </div>
+                        <div className="text-xs text-zinc-500">
+                          resposta(s)
+                        </div>
                       </div>
                     </div>
-
-                    <div className="h-2 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
-                      <div
-                        className="h-full bg-amber-400"
-                        style={{ width: `${module.percent}%` }}
-                      />
-                    </div>
-
-                    <div className="flex justify-between mt-1 text-xs text-zinc-500">
-                      <span>
-                        {module.status === 'completed'
-                          ? 'Completo'
-                          : module.answered > 0
-                            ? 'Em curso'
-                            : 'Por iniciar'}
-                      </span>
-                      <span>{module.percent}%</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
-              <p className="text-xs uppercase tracking-widest text-amber-400">
-                Gaps
-              </p>
-
-              <h3 className="text-2xl font-semibold">
-                Knowledge Gaps
-              </h3>
-
-              <p className="text-zinc-400 mt-2 mb-6">
-                Módulos com mais perguntas por responder.
-              </p>
-
-              <div className="space-y-4">
-                {knowledgeGaps.slice(0, 6).map((gap) => (
-                  <div
-                    key={gap.moduleCode}
-                    className="flex justify-between items-center border border-zinc-700 rounded-xl p-4"
-                  >
-                    <div>
-                      <div className="font-medium">
-                        {gap.moduleName}
-                      </div>
-                      <div className="text-sm text-zinc-500">
-                        {gap.moduleCode} · {gap.coveragePercent}% coberto
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-amber-400 font-semibold">
-                        {gap.missing}
-                      </div>
-                      <div className="text-xs text-zinc-500">
-                        por responder
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-<ConsensusReadinessCard
-  items={consensusItems}
-/>
-
-<ConsensusDocumentsCard
-  documents={consensusDocuments}
-/>
-
-<EmbeddingDocumentsCard
-  documents={embeddingDocuments}
-/>
-<KnowledgeChunksCard
-  chunks={knowledgeChunks}
-/>
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-<div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl p-8">
-  <div className="flex items-start justify-between gap-4 mb-6">
-    <div>
-      <p className="text-xs uppercase tracking-widest text-amber-400">
-         Readiness
-      </p>
-      <h3 className="text-2xl font-semibold">
-        Preparação para consenso
-      </h3>
-
-      <p className="text-zinc-400 mt-2">
-        Mede se já existe cobertura suficiente para começar a gerar consensos úteis.
-      </p>
-    </div>
-
-    <div className="text-right">
-      <div className="text-3xl font-semibold text-amber-400">
-        {consensusReadiness.readinessPercent}%
-      </div>
-      <div className="text-xs text-zinc-500">
-        pronto para consenso
-      </div>
-    </div>
-  </div>
-
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div className="rounded-xl border border-zinc-700 p-4">
-      <div className="text-sm text-zinc-500">
-        Total de perguntas
-      </div>
-      <div className="text-2xl font-semibold mt-2">
-        {consensusReadiness.totalQuestions}
-      </div>
-    </div>
-
-    <div className="rounded-xl border border-zinc-700 p-4">
-      <div className="text-sm text-zinc-500">
-        Respondidas
-      </div>
-      <div className="text-2xl font-semibold mt-2 text-amber-400">
-        {consensusReadiness.answeredQuestions}
-      </div>
-    </div>
-
-    <div className="rounded-xl border border-zinc-700 p-4">
-      <div className="text-sm text-zinc-500">
-        Por responder
-      </div>
-      <div className="text-2xl font-semibold mt-2">
-        {consensusReadiness.unansweredQuestions}
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-6">
-    <div className="h-3 rounded-full bg-zinc-900 border border-zinc-800 overflow-hidden">
-      <div
-        className="h-full bg-amber-400"
-        style={{
-          width: `${consensusReadiness.readinessPercent}%`,
-        }}
-      />
-    </div>
-
-    <div className="mt-2 text-xs text-zinc-500">
-      Quanto maior a cobertura, mais seguro será gerar consenso automático.
-    </div>
-  </div>
-</div>
-
-              
-<KnowledgeRecommendationCard
-  recommendation={nextRecommendation}
-  onContinue={startModule}
-/>
             </div>
 
 <KnowledgeModuleSelection
