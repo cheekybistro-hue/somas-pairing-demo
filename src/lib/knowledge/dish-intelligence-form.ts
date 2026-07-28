@@ -12,56 +12,86 @@ export type DishDimension = {
   description: string
 }
 
+export const DISH_INTENSITY_SCALE: Record<DishIntensityLevel, string> = {
+  0: 'Ausente',
+  1: 'Muito subtil',
+  2: 'Presente mas secundário',
+  3: 'Claro',
+  4: 'Marcante',
+  5: 'Dominante',
+}
+
 export const DISH_DIMENSIONS: DishDimension[] = [
   {
     code: 'DS01',
-    name: 'Intensidade Global',
+    name: 'Intensidade global',
     description:
-      'Peso e impacto geral do prato.',
+      'Peso geral do prato na boca: concentração, persistência e impacto sensorial.',
   },
   {
     code: 'DS02',
-    name: 'Gordura',
+    name: 'Richness / gordura',
     description:
-      'Presença de gordura e untuosidade.',
+      'Sensação de untuosidade, gordura, cremosidade ou riqueza de molho.',
   },
   {
     code: 'DS03',
     name: 'Acidez',
     description:
-      'Sensação ácida do prato.',
+      'Frescura ácida do prato: limão, vinagre, tomate, marinada ou fermentação.',
   },
   {
     code: 'DS04',
     name: 'Doçura',
     description:
-      'Presença de elementos doces.',
+      'Presença de doçura natural ou adicionada: cebola, fruta, mel, caramelização.',
   },
   {
     code: 'DS05',
     name: 'Salinidade',
     description:
-      'Perceção de sal.',
+      'Perceção de sal, cura, mar, bacalhau, enchidos ou queijo.',
   },
   {
     code: 'DS06',
     name: 'Amargor',
     description:
-      'Notas amargas dominantes.',
+      'Notas amargas de grelha, vegetais, torra, ervas ou redução.',
   },
   {
     code: 'DS07',
     name: 'Picante',
     description:
-      'Presença de especiarias picantes.',
+      'Calor de pimenta, malagueta, especiarias picantes ou condimentação intensa.',
   },
   {
     code: 'DS08',
     name: 'Umami',
     description:
-      'Profundidade e sabor persistente.',
+      'Profundidade saborosa e persistente: caldos, cogumelos, carnes, peixe curado, queijo.',
   },
 ]
+
+export const DISH_DIMENSION_GROUPS = [
+  {
+    title: 'Estrutura do prato',
+    helper:
+      'Avalia primeiro o peso geral do prato e a sensação de riqueza na boca.',
+    codes: ['DS01', 'DS02'],
+  },
+  {
+    title: 'Equilíbrio gustativo',
+    helper:
+      'Estas dimensões ajudam o SomAS a perceber frescura, contraste e tensão gastronómica.',
+    codes: ['DS03', 'DS04', 'DS05', 'DS06'],
+  },
+  {
+    title: 'Persistência e intensidade aromática',
+    helper:
+      'Regista o que pode marcar a escolha do vinho: picante, profundidade e sabor persistente.',
+    codes: ['DS07', 'DS08'],
+  },
+] as const
 
 export const COOKING_METHODS = [
   'Cru',
@@ -76,6 +106,7 @@ export const COOKING_METHODS = [
   'Frito',
   'Confitado',
   'Fumado',
+  'Outro',
 ] as const
 
 export type DishIntelligenceQuestion = {
