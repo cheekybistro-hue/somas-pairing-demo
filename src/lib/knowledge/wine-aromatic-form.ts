@@ -6,10 +6,10 @@ export const WINE_AROMATIC_FORM_PHASE =
 
 export const WINE_AROMATIC_SCALE = {
   0: 'Ausente',
-  1: 'Muito baixo',
-  2: 'Baixo',
-  3: 'Médio',
-  4: 'Alto',
+  1: 'Muito subtil',
+  2: 'Presente mas secundário',
+  3: 'Claro',
+  4: 'Marcante',
   5: 'Dominante',
 } as const
 
@@ -26,15 +26,16 @@ export const WINE_AROMATIC_STORY = {
   title: 'Wine Aromatic Intelligence',
   subtitle: 'Perfis vínicos → famílias aromáticas',
   whyItMatters:
-    'Os aromas são uma dimensão essencial da perceção do vinho. Este módulo ajuda o SomAS a compreender como cada perfil vínico se expressa aromaticamente.',
+    'A dimensão aromática permite ao SomAS reconhecer pontes subtis entre vinho e prato: fruta, ervas, especiarias, madeira, mineralidade e notas de evolução.',
   howToAnswer: [
     'Pense no perfil vínico WXX como estilo, não numa garrafa específica.',
     'Avalie a presença de cada família aromática numa escala de 0 a 5.',
     'Use 0 quando a família estiver ausente e 5 quando for dominante.',
+    'Dê mais peso aos aromas que estruturam a identidade do perfil, não a notas ocasionais.',
     'Responda com base na sua experiência profissional e sensorial.',
   ],
   somasImpact:
-    'Estas respostas vão criar uma biblioteca aromática colaborativa, permitindo recomendações mais humanas, sensoriais e explicáveis.',
+    'Estas respostas criam uma biblioteca aromática colaborativa dos perfis W01–W30, permitindo recomendações mais sensoriais, explicáveis e humanas.',
 }
 
 export function buildWineAromaticQuestions(): WineAromaticQuestion[] {
@@ -43,7 +44,7 @@ export function buildWineAromaticQuestions(): WineAromaticQuestion[] {
     question_type: 'wine_aromatic_profile',
     wine_profile_code: profile.code,
     wine_profile_title: profile.title,
-    question_text: `Quais são as famílias aromáticas dominantes do perfil ${profile.code} — ${profile.title}?`,
+    question_text: `Classifica a presença das famílias aromáticas no perfil ${profile.code} — ${profile.title}.`,
     aromatic_families: AROMATIC_FAMILIES,
   }))
 }
