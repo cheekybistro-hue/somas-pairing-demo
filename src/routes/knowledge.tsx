@@ -329,6 +329,10 @@ function KnowledgeInterview() {
       state.location.pathname.startsWith('/knowledge/review/'),
   })
 
+  const currentLocationHref = useRouterState({
+    select: (state) => state.location.href,
+  })
+
   const [stage, setStage] = useState<Stage>('auth')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [authEmail, setAuthEmail] = useState('')
@@ -420,6 +424,10 @@ total:
   useState<string | null>(null)
   const [editAnswerData, setEditAnswerData] =
   useState<any | null>(null)
+  const [pendingEditRequest, setPendingEditRequest] = useState<{
+    moduleCode: string
+    questionCode: string
+  } | null>(null)
   const answeredInModule = currentProgress?.questions_answered ?? 0
   const [aromaticValues, setAromaticValues] =
   useState<Record<string, number>>({})
@@ -499,9 +507,10 @@ function getStoryPhaseForModule(
   
   useEffect(() => {
     initializeAuth()
- 
+
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null
+
       if (!user) {
         resetUserState()
         return
@@ -518,6 +527,97 @@ function getStoryPhaseForModule(
       data.subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    const queryString = currentLocationHref.includes('?')
+      ? currentLocationHref.split('?')[1]?.split('#')[0] ?? ''
+      : typeof window !== 'undefined'
+        ? window.location.search.replace(/^\?/, '')
+        : ''
+
+    const params = new URLSearchParams(queryString)
+    const moduleCode = params.get('module')
+    const questionCode = params.get('edit')
+
+    if (!moduleCode || !questionCode) return
+
+    setPendingEditRequest((current) => {
+      if (
+        current?.moduleCode === moduleCode &&
+        current?.questionCode === questionCode
+      ) {
+        return current
+      }
+
+      return {
+        moduleCode,
+        questionCode,
+      }
+    })
+  }, [currentLocationHref])
+
+  useEffect(() => {
+    async function openPendingEditRequest() {
+      if (!pendingEditRequest) return
+      if (!expertId) return
+      if (modules.length === 0) return
+      if (loading) return
+
+      const targetModule = modules.find(
+        (module) => module.module_code === pendingEditRequest.moduleCode
+      )
+
+      if (!targetModule) {
+        setError('Não foi encontrado o módulo para editar.')
+        setPendingEditRequest(null)
+        return
+      }
+
+      const { data: answers, error: answersError } = await supabase
+        .from('knowledge_answers')
+        .select('*')
+        .eq('expert_id', expertId)
+        .eq('question_code', pendingEditRequest.questionCode)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (answersError) {
+        setError(answersError.message)
+        setPendingEditRequest(null)
+        return
+      }
+
+      const answer = answers?.[0]
+
+      if (!answer) {
+        setError('Não foi encontrada a resposta para editar.')
+        setPendingEditRequest(null)
+        return
+      }
+
+      try {
+        setEditAnswerData(
+          typeof answer.answer_json === 'string'
+            ? JSON.parse(answer.answer_json)
+            : answer.answer_json
+        )
+      } catch {
+        setEditAnswerData(null)
+      }
+
+      setEditQuestionCode(pendingEditRequest.questionCode)
+      setPendingEditRequest(null)
+
+      await startModule(targetModule)
+    }
+
+    openPendingEditRequest()
+  }, [
+    pendingEditRequest,
+    expertId,
+    modules,
+    loading,
+  ])
 
     useEffect(() => {
   async function loadConsensus() {
@@ -1177,10 +1277,36 @@ if (
     }
   }, [modules, progress])
 
+  const hasReviewEditParams = currentLocationHref.includes('module=') &&
+    currentLocationHref.includes('edit=')
+
   if (isReviewRoute) {
     return <Outlet />
   }
 
+if (pendingEditRequest || (hasReviewEditParams && stage !== 'interview' && !error)) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <div className="rounded-2xl border border-amber-500/40 bg-zinc-900/70 p-8">
+          <p className="mb-2 text-xs uppercase tracking-widest text-amber-400">
+            A preparar edição
+          </p>
+
+          <h1 className="mb-4 text-2xl font-light">
+            A abrir resposta para edição…
+          </h1>
+
+          <p className="text-sm text-zinc-400">
+            Estamos a carregar o módulo e a resposta guardada.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+   
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100">
      
