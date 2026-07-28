@@ -37,30 +37,30 @@ export type DishSensoryProfile = {
 
 export const DISH_SENSORY_SCALE = {
   0: 'Ausente',
-  1: 'Muito Baixo',
-  2: 'Baixo',
-  3: 'Médio',
-  4: 'Alto',
+  1: 'Muito subtil',
+  2: 'Presente mas secundário',
+  3: 'Claro',
+  4: 'Marcante',
   5: 'Dominante',
 } as const
 
 export const DISH_INTELLIGENCE_STORY = {
   title: 'Dish Intelligence',
   subtitle:
-    'Pratos reais → Arquétipos → Perfil Sensorial',
+    'Pratos reais → Arquétipos → Perfil sensorial',
 
   whyItMatters:
-    'Os arquétipos simplificam a gastronomia, mas os clientes pedem pratos reais. Este módulo cria a ponte entre pratos concretos, arquétipos gastronómicos e perfis vínicos.',
+    'A harmonização nasce no prato real. Até agora, o SomAS conhece arquétipos gastronómicos e perfis vínicos; neste módulo ligamos essa estrutura a pratos concretos da gastronomia portuguesa.',
 
   instructions: [
-    'Indique até três pratos portugueses que representem bem cada arquétipo.',
-    'Sempre que possível escolha pratos reconhecidos nacionalmente.',
-    'Classifique o prato segundo o seu perfil sensorial.',
-    'Considere o prato na sua versão mais tradicional.',
+    'Escolhe um prato que represente bem o arquétipo gastronómico apresentado.',
+    'Avalia o prato como o provarias antes de escolher um vinho para o acompanhar.',
+    'Considera a versão mais tradicional ou reconhecível do prato.',
+    'Classifica confeção, acidez, riqueza, salinidade, umami, picante e intensidade com a escala 0–5.',
   ],
 
   impact:
-    'Este conhecimento permitirá ao SomAS reconhecer pratos reais e recomendar vinhos com maior precisão.',
+    'Estas respostas ajudam o SomAS a transformar conhecimento gastronómico em recomendações mais humanas, explicáveis e próximas da realidade dos restaurantes portugueses.',
 }
 
 export const STARTER_DISH_EXAMPLES: DishExample[] =
