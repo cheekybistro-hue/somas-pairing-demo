@@ -609,6 +609,7 @@ function getStoryPhaseForModule(
       setPendingEditRequest(null)
 
       await startModule(targetModule)
+      window.history.replaceState({}, '', '/knowledge')
     }
 
     openPendingEditRequest()
