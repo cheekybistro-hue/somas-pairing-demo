@@ -6,6 +6,7 @@ import {
   type DishIntensityLevel,
 } from '../../lib/knowledge/dish-intelligence-form'
 import { DISH_SUGGESTIONS } from '../../lib/knowledge/dish-suggestions'
+import { FOOD_ARCHETYPES } from '../../lib/knowledge/pairing-taxonomy'
 
 type Props = {
   foodArchetypeCode: string
@@ -23,6 +24,10 @@ function getDimensionByCode(code: string) {
   return DISH_DIMENSIONS.find((dimension) => dimension.code === code)
 }
 
+function getArchetypeByCode(code: string) {
+  return FOOD_ARCHETYPES.find((archetype) => archetype.code === code)
+}
+
 export function DishQuestionCard({
   foodArchetypeCode,
   dishName,
@@ -34,6 +39,8 @@ export function DishQuestionCard({
 }: Props) {
   const suggestions =
     DISH_SUGGESTIONS[foodArchetypeCode] ?? []
+
+  const archetype = getArchetypeByCode(foodArchetypeCode)
 
   function selectDish(selectedDishName: string) {
     setDishName(selectedDishName)
@@ -61,6 +68,29 @@ export function DishQuestionCard({
         <p className="mt-2 text-zinc-400">
           Escolhe um prato representativo deste arquétipo e avalia-o como o provarias antes de escolher um vinho para acompanhar.
         </p>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="mb-1 text-xs uppercase tracking-widest text-amber-400">
+          Arquétipo gastronómico
+        </div>
+
+        <h3 className="text-lg font-semibold text-zinc-100">
+          {foodArchetypeCode}
+          {archetype ? ` — ${archetype.title}` : ''}
+        </h3>
+
+        {archetype?.sensoryContext && (
+          <p className="mt-2 text-sm text-zinc-300">
+            {archetype.sensoryContext}
+          </p>
+        )}
+
+        {archetype?.description && (
+          <p className="mt-2 text-sm text-zinc-500">
+            {archetype.description}
+          </p>
+        )}
       </div>
 
       <div className="rounded-xl border border-zinc-700 bg-zinc-950/40 p-4 text-sm text-zinc-400">
@@ -93,7 +123,7 @@ export function DishQuestionCard({
           </div>
 
           <label className="mb-2 block text-sm text-zinc-300">
-            Prato sugerido
+            Prato representativo
           </label>
 
           <select
