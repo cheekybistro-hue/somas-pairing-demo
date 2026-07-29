@@ -4,179 +4,187 @@ export type DishSuggestion = {
   origin: 'Portugal' | 'Internacional'
 }
 
+// PR12.2 — Dish Intelligence suggestions aligned with FOOD_ARCHETYPES.
+// Ground rules:
+// - Portuguese dishes only for now.
+// - Suggestions must represent the sensory archetype, not just the ingredient.
+// - International examples can return later as a separate optional layer.
+// - A20–A23 are dessert archetypes in the current pairing taxonomy.
+// - A24 is dominant spice/heat.
+// - A25 is dominant smoke / intense BBQ in the current pairing taxonomy.
 export const DISH_SUGGESTIONS: Record<string, DishSuggestion[]> = {
   A01: [
     { name: 'Ostras da Ria Formosa', cookingMethod: 'Cru', origin: 'Portugal' },
     { name: 'Percebes cozidos', cookingMethod: 'Cozido', origin: 'Portugal' },
+    { name: 'Berbigão ao natural', cookingMethod: 'Cozido', origin: 'Portugal' },
     { name: 'Amêijoas à Bulhão Pato', cookingMethod: 'Salteado', origin: 'Portugal' },
-    { name: 'Ceviche peruano', cookingMethod: 'Marinado', origin: 'Internacional' },
   ],
 
   A02: [
-    { name: 'Bacalhau cozido com todos', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Pescada cozida', cookingMethod: 'Cozido', origin: 'Portugal' },
+    { name: 'Pescada cozida simples', cookingMethod: 'Cozido', origin: 'Portugal' },
     { name: 'Linguado ao vapor', cookingMethod: 'Vapor', origin: 'Portugal' },
-    { name: 'Sole meunière', cookingMethod: 'Salteado', origin: 'Internacional' },
+    { name: 'Robalo cozido simples', cookingMethod: 'Cozido', origin: 'Portugal' },
+    { name: 'Dourada ao vapor', cookingMethod: 'Vapor', origin: 'Portugal' },
   ],
 
   A03: [
-    { name: 'Sardinha assada', cookingMethod: 'Grelhado', origin: 'Portugal' },
+    { name: 'Robalo grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
     { name: 'Dourada grelhada', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Polvo grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Gambas al ajillo', cookingMethod: 'Salteado', origin: 'Internacional' },
+    { name: 'Lulas grelhadas', cookingMethod: 'Grelhado', origin: 'Portugal' },
+    { name: 'Sardinha assada', cookingMethod: 'Grelhado', origin: 'Portugal' },
   ],
 
   A04: [
     { name: 'Bacalhau com natas', cookingMethod: 'Assado', origin: 'Portugal' },
     { name: 'Arroz de marisco', cookingMethod: 'Estufado', origin: 'Portugal' },
     { name: 'Cataplana de peixe', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Salmão com molho holandês', cookingMethod: 'Grelhado', origin: 'Internacional' },
+    { name: 'Polvo à lagareiro', cookingMethod: 'Assado', origin: 'Portugal' },
   ],
 
   A05: [
     { name: 'Escabeche de peixe', cookingMethod: 'Marinado', origin: 'Portugal' },
-    { name: 'Salada de polvo', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Mexilhão de escabeche', cookingMethod: 'Marinado', origin: 'Portugal' },
-    { name: 'Boquerones en vinagre', cookingMethod: 'Marinado', origin: 'Internacional' },
+    { name: 'Carapaus de escabeche', cookingMethod: 'Marinado', origin: 'Portugal' },
+    { name: 'Cataplana de peixe com tomate', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Salada de polvo com vinagrete', cookingMethod: 'Cozido', origin: 'Portugal' },
   ],
 
   A06: [
-    { name: 'Frango grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Peru assado simples', cookingMethod: 'Assado', origin: 'Portugal' },
+    { name: 'Frango grelhado simples', cookingMethod: 'Grelhado', origin: 'Portugal' },
+    { name: 'Peru grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
     { name: 'Coelho grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Poulet rôti', cookingMethod: 'Assado', origin: 'Internacional' },
+    { name: 'Bife de peru grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
   ],
 
   A07: [
     { name: 'Frango de fricassé', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Arroz de pato', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Galinha de cabidela', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Coq au vin', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Frango com natas', cookingMethod: 'Assado', origin: 'Portugal' },
+    { name: 'Coelho com molho branco', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Peru com molho cremoso', cookingMethod: 'Estufado', origin: 'Portugal' },
   ],
 
   A08: [
-    { name: 'Entrecosto assado', cookingMethod: 'Assado', origin: 'Portugal' },
     { name: 'Frango no churrasco', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Costeletas grelhadas', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Costelas barbecue', cookingMethod: 'Fumado', origin: 'Internacional' },
+    { name: 'Asas de frango grelhadas', cookingMethod: 'Grelhado', origin: 'Portugal' },
+    { name: 'Frango fumado', cookingMethod: 'Fumado', origin: 'Portugal' },
+    { name: 'Peru fumado', cookingMethod: 'Fumado', origin: 'Portugal' },
   ],
 
   A09: [
     { name: 'Frango piri-piri', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Caril de gambas', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Caril de frango', cookingMethod: 'Estufado', origin: 'Portugal' },
     { name: 'Moelas picantes', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Chicken tikka masala', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Camarão picante', cookingMethod: 'Salteado', origin: 'Portugal' },
   ],
 
   A10: [
     { name: 'Posta mirandesa', cookingMethod: 'Grelhado', origin: 'Portugal' },
     { name: 'Bife à portuguesa', cookingMethod: 'Frito', origin: 'Portugal' },
     { name: 'Costeleta de novilho grelhada', cookingMethod: 'Grelhado', origin: 'Portugal' },
-    { name: 'Chuletón basco', cookingMethod: 'Grelhado', origin: 'Internacional' },
+    { name: 'Naco de vitela grelhado', cookingMethod: 'Grelhado', origin: 'Portugal' },
   ],
 
   A11: [
-    { name: 'Vitela de Lafões', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Bochechas de porco estufadas', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Rabo de boi estufado', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Ossobuco alla milanese', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Bife com molho de vinho tinto', cookingMethod: 'Redução', origin: 'Portugal' },
+    { name: 'Bife com molho de pimenta', cookingMethod: 'Salteado', origin: 'Portugal' },
+    { name: 'Vitela com molho escuro', cookingMethod: 'Assado', origin: 'Portugal' },
+    { name: 'Bochechas de porco com redução', cookingMethod: 'Estufado', origin: 'Portugal' },
   ],
 
   A12: [
-    { name: 'Cabrito assado', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Leitão da Bairrada', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Cozido à portuguesa', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Cassoulet', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Carne de vaca estufada', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Rabo de boi estufado', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Chambão de vitela estufado', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Ensopado de borrego', cookingMethod: 'Estufado', origin: 'Portugal' },
   ],
 
   A13: [
-    { name: 'Arroz de cabidela de caça', cookingMethod: 'Estufado', origin: 'Portugal' },
     { name: 'Javali estufado', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Veado estufado', cookingMethod: 'Estufado', origin: 'Portugal' },
     { name: 'Perdiz de escabeche', cookingMethod: 'Marinado', origin: 'Portugal' },
-    { name: 'Civet de lièvre', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Arroz de cabidela de caça', cookingMethod: 'Estufado', origin: 'Portugal' },
   ],
 
   A14: [
     { name: 'Arroz de míscaros', cookingMethod: 'Estufado', origin: 'Portugal' },
     { name: 'Cogumelos salteados', cookingMethod: 'Salteado', origin: 'Portugal' },
     { name: 'Açorda de cogumelos', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Risotto de funghi', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Ovos mexidos com cogumelos', cookingMethod: 'Salteado', origin: 'Portugal' },
   ],
 
   A15: [
     { name: 'Legumes assados no forno', cookingMethod: 'Assado', origin: 'Portugal' },
     { name: 'Peixinhos da horta', cookingMethod: 'Frito', origin: 'Portugal' },
     { name: 'Migas com legumes', cookingMethod: 'Salteado', origin: 'Portugal' },
-    { name: 'Ratatouille', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Beringela assada', cookingMethod: 'Assado', origin: 'Portugal' },
   ],
 
   A16: [
     { name: 'Salada de tomate algarvia', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Salada de polvo fria', cookingMethod: 'Cozido', origin: 'Portugal' },
     { name: 'Gaspacho alentejano', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Salada grega', cookingMethod: 'Cru', origin: 'Internacional' },
+    { name: 'Salada de pimentos assados com vinagrete', cookingMethod: 'Marinado', origin: 'Portugal' },
+    { name: 'Vegetais crus marinados', cookingMethod: 'Marinado', origin: 'Portugal' },
   ],
 
   A17: [
-    { name: 'Queijo fresco com azeite', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Requeijão com ervas', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Queijo de cabra fresco', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Burrata', cookingMethod: 'Cru', origin: 'Internacional' },
+    { name: 'Queijo fresco', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Requeijão', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo de cabra fresco', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Requeijão com ervas', cookingMethod: 'Sem confeção', origin: 'Portugal' },
   ],
 
   A18: [
-    { name: 'Queijo Serra da Estrela jovem', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Queijo de Azeitão', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Queijo de Nisa', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Comté jovem', cookingMethod: 'Cru', origin: 'Internacional' },
+    { name: 'Queijo de Azeitão', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo de Nisa', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo Serra da Estrela jovem', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo São Jorge jovem', cookingMethod: 'Sem confeção', origin: 'Portugal' },
   ],
 
   A19: [
-    { name: 'Queijo São Jorge curado', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Queijo da Ilha curado', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Serpa curado', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Roquefort', cookingMethod: 'Cru', origin: 'Internacional' },
+    { name: 'Queijo São Jorge curado', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo da Ilha curado', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Serpa curado', cookingMethod: 'Sem confeção', origin: 'Portugal' },
+    { name: 'Queijo Serra da Estrela curado', cookingMethod: 'Sem confeção', origin: 'Portugal' },
   ],
 
   A20: [
-    { name: 'Paté de fígado', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Terrina de caça', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Morcela assada', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Foie gras', cookingMethod: 'Cru', origin: 'Internacional' },
+    { name: 'Arroz doce pouco doce', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Aletria leve', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Pudim de claras', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Bolo de iogurte simples', cookingMethod: 'Assado', origin: 'Portugal' },
   ],
 
   A21: [
-    { name: 'Empadão de carne', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Rissóis de carne', cookingMethod: 'Frito', origin: 'Portugal' },
-    { name: 'Croquetes de carne', cookingMethod: 'Frito', origin: 'Portugal' },
-    { name: 'Lasagna alla bolognese', cookingMethod: 'Assado', origin: 'Internacional' },
+    { name: 'Tarte de limão', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Bolo de laranja', cookingMethod: 'Assado', origin: 'Portugal' },
+    { name: 'Salada de fruta', cookingMethod: 'Cru', origin: 'Portugal' },
+    { name: 'Maçã assada', cookingMethod: 'Assado', origin: 'Portugal' },
   ],
 
   A22: [
-    { name: 'Arroz de marisco', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Arroz de polvo', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Arroz de tamboril', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Paella valenciana', cookingMethod: 'Estufado', origin: 'Internacional' },
+    { name: 'Mousse de chocolate', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Bolo de chocolate', cookingMethod: 'Assado', origin: 'Portugal' },
+    { name: 'Salame de chocolate', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Pudim de ovos com caramelo', cookingMethod: 'Doçaria', origin: 'Portugal' },
   ],
 
   A23: [
-    { name: 'Massa à lavrador', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Massa de peixe', cookingMethod: 'Estufado', origin: 'Portugal' },
-    { name: 'Massa gratinada com carne', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Spaghetti carbonara', cookingMethod: 'Salteado', origin: 'Internacional' },
+    { name: 'Pão de ló húmido', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Toucinho do céu', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Ovos moles de Aveiro', cookingMethod: 'Doçaria', origin: 'Portugal' },
+    { name: 'Rabanadas com vinho do Porto', cookingMethod: 'Doçaria', origin: 'Portugal' },
   ],
 
   A24: [
-    { name: 'Pastel de nata', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Leite creme', cookingMethod: 'Cozido', origin: 'Portugal' },
-    { name: 'Tarte de maçã', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Crème brûlée', cookingMethod: 'Cozido', origin: 'Internacional' },
+    { name: 'Frango piri-piri intenso', cookingMethod: 'Grelhado', origin: 'Portugal' },
+    { name: 'Moelas picantes', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Caril de frango picante', cookingMethod: 'Estufado', origin: 'Portugal' },
+    { name: 'Camarão com malagueta', cookingMethod: 'Salteado', origin: 'Portugal' },
   ],
 
   A25: [
-    { name: 'Mousse de chocolate', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Bolo de chocolate', cookingMethod: 'Assado', origin: 'Portugal' },
-    { name: 'Salame de chocolate', cookingMethod: 'Cru', origin: 'Portugal' },
-    { name: 'Fondant au chocolat', cookingMethod: 'Assado', origin: 'Internacional' },
+    { name: 'Entremeada no carvão', cookingMethod: 'Grelhado intenso', origin: 'Portugal' },
+    { name: 'Costelinhas fumadas', cookingMethod: 'Fumado', origin: 'Portugal' },
+    { name: 'Secretos de porco no carvão', cookingMethod: 'Grelhado intenso', origin: 'Portugal' },
+    { name: 'Churrasco misto fumado', cookingMethod: 'Fumado', origin: 'Portugal' },
   ],
 }
