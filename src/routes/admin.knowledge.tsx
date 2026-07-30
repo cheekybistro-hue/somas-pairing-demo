@@ -2,6 +2,13 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import { loadConsensusSnapshot } from '../lib/knowledge/consensus-persistence'
 import {
+  buildKnowledgeExportBundle,
+  buildConsensusKnowledgeExportDataset,
+  buildEmbeddingKnowledgeExportDataset,
+  toJsonDownload,
+  toJsonlDownload,
+} from '../lib/knowledge/knowledge-export'
+import {
   buildTrainingDatasetJson,
   buildTrainingDatasetJsonl,
 } from '../lib/knowledge/training-dataset'
@@ -15,6 +22,27 @@ function AdminKnowledgeDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
+  const [exporting, setExporting] = useState(false)
+
+  function downloadTextFile({
+    filename,
+    content,
+    type,
+  }: {
+    filename: string
+    content: string
+    type: string
+  }) {
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = filename
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
 
   useEffect(() => {
     loadData()
@@ -198,6 +226,75 @@ function exportTrainingJsonl() {
   URL.revokeObjectURL(url)
 }
 
+async function exportFullKnowledgeBundle() {
+  try {
+    setExporting(true)
+    setError(null)
+
+    const bundle = await buildKnowledgeExportBundle()
+
+    downloadTextFile({
+      filename: 'somas-knowledge-export-bundle.json',
+      content: toJsonDownload(bundle),
+      type: 'application/json',
+    })
+  } catch (err: any) {
+    setError(err.message ?? 'Erro ao exportar knowledge bundle')
+  } finally {
+    setExporting(false)
+  }
+}
+
+async function exportRawAnswersJson() {
+  try {
+    setExporting(true)
+    setError(null)
+
+    const bundle = await buildKnowledgeExportBundle()
+
+    downloadTextFile({
+      filename: 'somas-raw-knowledge-answers.json',
+      content: toJsonDownload(bundle.rawAnswers),
+      type: 'application/json',
+    })
+  } catch (err: any) {
+    setError(err.message ?? 'Erro ao exportar respostas brutas')
+  } finally {
+    setExporting(false)
+  }
+}
+
+function exportDatasetJson() {
+  const dataset = buildConsensusKnowledgeExportDataset(
+    filteredConsensus,
+    [],
+    []
+  )
+
+  downloadTextFile({
+    filename: 'somas-consensus-dataset.json',
+    content: toJsonDownload(dataset),
+    type: 'application/json',
+  })
+}
+
+function exportEmbeddingJsonl() {
+  const dataset = buildConsensusKnowledgeExportDataset(
+    filteredConsensus,
+    [],
+    []
+  )
+
+  const documents =
+    buildEmbeddingKnowledgeExportDataset(dataset)
+
+  downloadTextFile({
+    filename: 'somas-embedding-dataset.jsonl',
+    content: toJsonlDownload(documents),
+    type: 'application/x-ndjson;charset=utf-8;',
+  })
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -252,6 +349,66 @@ function exportTrainingJsonl() {
             value={stats.weak}
             helper="< 50%"
           />
+        </section>
+
+        <section className="bg-zinc-800/50 border border-amber-900/60 rounded-2xl p-6">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-amber-400 mb-2">
+                PR13 · Dataset Readiness
+              </p>
+
+              <h2 className="text-2xl font-light">
+                Knowledge Export
+              </h2>
+
+              <p className="text-zinc-400 text-sm mt-2 max-w-3xl">
+                Exporta o conhecimento em formatos estáveis para outro sistema: respostas brutas, dataset consensual e documentos JSONL para embeddings/RAG.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-w-fit">
+              <button
+                type="button"
+                onClick={exportRawAnswersJson}
+                disabled={exporting}
+                className="px-4 py-2 rounded-xl border border-zinc-600 text-zinc-200 hover:bg-zinc-700/40 text-sm disabled:opacity-50"
+              >
+                Raw Answers JSON
+              </button>
+
+              <button
+                type="button"
+                onClick={exportDatasetJson}
+                className="px-4 py-2 rounded-xl border border-cyan-500 text-cyan-300 hover:bg-cyan-500/10 text-sm"
+              >
+                Dataset JSON
+              </button>
+
+              <button
+                type="button"
+                onClick={exportEmbeddingJsonl}
+                className="px-4 py-2 rounded-xl border border-fuchsia-500 text-fuchsia-300 hover:bg-fuchsia-500/10 text-sm"
+              >
+                Embeddings JSONL
+              </button>
+
+              <button
+                type="button"
+                onClick={exportFullKnowledgeBundle}
+                disabled={exporting}
+                className="px-4 py-2 rounded-xl border border-amber-400 text-amber-300 hover:bg-amber-400/10 text-sm disabled:opacity-50"
+              >
+                Bundle completo
+              </button>
+            </div>
+          </div>
+
+          {exporting && (
+            <div className="text-zinc-500 text-sm mt-4">
+              A preparar exportação...
+            </div>
+          )}
         </section>
 
         <section className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-6">
