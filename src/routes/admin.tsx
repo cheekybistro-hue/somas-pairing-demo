@@ -1,11 +1,24 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import {
+  Outlet,
+  createFileRoute,
+  Link,
+  useRouterState,
+} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/admin')({
   component: AdminHubPage,
 })
 
-function AdminHubPage() {
-  const cards = [
+ function AdminHubPage() {
+  const isChildAdminRoute = useRouterState({
+    select: (state) => state.location.pathname !== '/admin',
+  })
+
+  if (isChildAdminRoute) {
+    return <Outlet />
+  }
+
+   const cards = [
     {
       title: 'Knowledge Dashboard',
       description:
