@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import {
   loadKnowledgeCollectionPlan,
   toCollectionPlanJson,
@@ -36,6 +36,7 @@ function AdminKnowledgeTargetsPage() {
     'all' | CollectionPriority
   >('all')
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
+  const [showAllTargets, setShowAllTargets] = useState(false)
 
   useEffect(() => {
     void loadData()
@@ -107,6 +108,13 @@ function AdminKnowledgeTargetsPage() {
     [plan]
   )
 
+  const visibleTargets = useMemo(
+    () => (showAllTargets ? filteredTargets : filteredTargets.slice(0, 20)),
+    [filteredTargets, showAllTargets]
+  )
+
+  const hiddenTargetCount = Math.max(filteredTargets.length - visibleTargets.length, 0)
+
   function downloadFilteredJson() {
     const blob = new Blob([toCollectionPlanJson(filteredTargets)], {
       type: 'application/json',
@@ -133,7 +141,7 @@ function AdminKnowledgeTargetsPage() {
         <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
           <div>
             <p className="text-sm uppercase tracking-widest text-amber-400 mb-2">
-              SomAS Admin · PR15
+              SomAS Admin · PR15.1
             </p>
 
             <h1 className="text-4xl font-light">
@@ -142,10 +150,9 @@ function AdminKnowledgeTargetsPage() {
 
             <p className="text-zinc-400 mt-3 max-w-3xl">
               Plano operacional para orientar a recolha de dados junto de
-              sommeliers, chefs, enólogos e outros especialistas. A página mostra
-              que perguntas ainda precisam de respostas, quem deve ser chamado e
-              que módulos já têm cobertura suficiente para consenso, exportação e
-              RAG.
+              sommeliers, chefs, enólogos e outros especialistas. Esta versão mostra
+              primeiro os alvos prioritários para a próxima sessão de recolha e
+              mantém a lista completa disponível quando for necessário auditar tudo.
             </p>
           </div>
 
@@ -253,52 +260,72 @@ function AdminKnowledgeTargetsPage() {
             </select>
           </div>
 
-          <p className="text-zinc-500 text-sm mt-4">
-            {filteredTargets.length} alvo(s) visível(eis)
-            {plan?.generatedAt
-              ? ` · atualizado em ${new Date(plan.generatedAt).toLocaleString('pt-PT')}`
-              : ''}
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-4">
+            <p className="text-zinc-500 text-sm">
+              {filteredTargets.length} alvo(s) encontrados · {visibleTargets.length} mostrado(s)
+              {plan?.generatedAt
+                ? ` · atualizado em ${new Date(plan.generatedAt).toLocaleString('pt-PT')}`
+                : ''}
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              <QuickFilterButton active={priorityFilter === 'critical'} onClick={() => { setPriorityFilter('critical'); setShowAllTargets(false) }}>Críticos</QuickFilterButton>
+              <QuickFilterButton active={priorityFilter === 'high'} onClick={() => { setPriorityFilter('high'); setShowAllTargets(false) }}>Alta prioridade</QuickFilterButton>
+              <QuickFilterButton active={moduleFilter === 'FORM5'} onClick={() => { setModuleFilter('FORM5'); setPriorityFilter('all'); setShowAllTargets(false) }}>FORM5 · chefs</QuickFilterButton>
+              <QuickFilterButton active={moduleFilter === 'all' && priorityFilter === 'all' && !search.trim()} onClick={() => { setModuleFilter('all'); setPriorityFilter('all'); setSearch(''); setShowAllTargets(false) }}>Limpar filtros</QuickFilterButton>
+            </div>
+          </div>
         </section>
 
         <ModuleTargetDistribution modules={modules} />
 
         <PriorityPanel targets={topPriorities} />
 
-        <section className="grid grid-cols-1 xl:grid-cols-[1.7fr_1fr] gap-6">
-          <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl overflow-hidden">
+        <section className="grid grid-cols-1 xl:grid-cols-[1.45fr_1fr] gap-6">
+          <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-5">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-zinc-500 mb-1">
+                  Lista de trabalho
+                </p>
+                <h2 className="text-xl font-light">
+                  Alvos prioritários para recolha
+                </h2>
+                <p className="text-sm text-zinc-500 mt-2 max-w-2xl">
+                  Mostramos apenas os primeiros 20 alvos para manter a página operacional.
+                  Usa os filtros rápidos para preparar sessões por módulo ou por urgência.
+                </p>
+              </div>
+
+              {hiddenTargetCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllTargets((value) => !value)}
+                  className="px-4 py-2 rounded-xl border border-zinc-600 text-zinc-300 hover:bg-zinc-700/60 text-sm"
+                >
+                  {showAllTargets ? 'Mostrar só 20' : `Mostrar todos (+${hiddenTargetCount})`}
+                </button>
+              )}
+            </div>
+
             {loading ? (
-              <div className="text-zinc-400 p-8">
+              <div className="text-zinc-400 p-4">
                 A carregar plano de recolha...
               </div>
             ) : filteredTargets.length === 0 ? (
-              <div className="text-zinc-400 p-8">
+              <div className="text-zinc-400 p-4">
                 Não há alvos para os filtros selecionados.
               </div>
             ) : (
-              <div className="overflow-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-700 text-zinc-400">
-                      <th className="text-left p-3">Prioridade</th>
-                      <th className="text-left p-3">Módulo</th>
-                      <th className="text-left p-3">Alvo</th>
-                      <th className="text-left p-3">Cobertura</th>
-                      <th className="text-left p-3">Papel</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredTargets.map((target) => (
-                      <TargetRow
-                        key={target.id}
-                        target={target}
-                        selected={target.id === selectedTarget?.id}
-                        onSelect={() => setSelectedTargetId(target.id)}
-                      />
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-3">
+                {visibleTargets.map((target) => (
+                  <TargetWorkItem
+                    key={target.id}
+                    target={target}
+                    selected={target.id === selectedTarget?.id}
+                    onSelect={() => setSelectedTargetId(target.id)}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -421,7 +448,7 @@ function PriorityPanel({ targets }: { targets: KnowledgeCollectionTarget[] }) {
   )
 }
 
-function TargetRow({
+function TargetWorkItem({
   target,
   selected,
   onSelect,
@@ -430,45 +457,64 @@ function TargetRow({
   selected: boolean
   onSelect: () => void
 }) {
+  const missingText = target.missingResponses > 0
+    ? `faltam ${target.missingResponses}`
+    : 'meta atingida'
+
   return (
-    <tr
-      className={`border-b border-zinc-800 cursor-pointer hover:bg-zinc-900/70 ${
-        selected ? 'bg-amber-400/10' : ''
+    <button
+      type="button"
+      className={`w-full text-left rounded-xl border p-4 transition ${
+        selected
+          ? 'border-amber-400 bg-amber-400/10'
+          : 'border-zinc-700 bg-zinc-950 hover:bg-zinc-900/80'
       }`}
       onClick={onSelect}
     >
-      <td className="p-3 whitespace-nowrap">
-        <PriorityBadge priority={target.priority} label={target.priorityLabel} />
-      </td>
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <PriorityBadge priority={target.priority} label={target.priorityLabel} />
+            <span className="font-mono text-xs text-amber-300">
+              {target.moduleCode}
+            </span>
+            <span className="text-xs text-zinc-500">
+              {target.moduleName}
+            </span>
+          </div>
 
-      <td className="p-3">
-        <div className="font-mono text-amber-300">{target.moduleCode}</div>
-        <div className="text-xs text-zinc-500 truncate max-w-[180px]">
-          {target.moduleName}
-        </div>
-      </td>
+          <div className="font-mono text-sm text-zinc-300">
+            {target.questionCode}
+          </div>
 
-      <td className="p-3">
-        <div className="font-mono text-zinc-300">{target.questionCode}</div>
-        <div className="text-xs text-zinc-500 truncate max-w-[280px]">
-          {target.subjectLabel}
-        </div>
-      </td>
+          <div className="text-zinc-100 mt-1 leading-snug">
+            {target.subjectLabel}
+          </div>
 
-      <td className="p-3 min-w-[160px]">
-        <div className="text-zinc-200">
-          {target.usableResponses}/{target.targetResponses} respostas ·{' '}
-          {target.uniqueExperts}/{target.minExperts} especialistas
+          <div className="text-xs text-zinc-500 mt-2">
+            {target.actionLabel} · {target.recommendedRole}
+          </div>
         </div>
-        <div className="text-xs text-zinc-500">
-          {target.missingResponses} resposta(s) em falta
-        </div>
-      </td>
 
-      <td className="p-3 text-zinc-400 max-w-[200px]">
-        {target.recommendedRole}
-      </td>
-    </tr>
+        <div className="lg:w-48 shrink-0">
+          <div className="text-sm text-zinc-200 font-medium">
+            {target.usableResponses}/{target.targetResponses} úteis · {missingText}
+          </div>
+          <div className="text-xs text-zinc-500 mt-1">
+            {target.uniqueExperts}/{target.minExperts} especialistas
+          </div>
+          <div className="mt-3">
+            <ProgressBar
+              value={
+                target.targetResponses > 0
+                  ? Math.min(target.usableResponses / target.targetResponses, 1)
+                  : 0
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </button>
   )
 }
 
@@ -587,6 +633,30 @@ function TargetDetail({ target }: { target: KnowledgeCollectionTarget | null }) 
         )}
       </div>
     </aside>
+  )
+}
+
+function QuickFilterButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs ${
+        active
+          ? 'border-amber-400 bg-amber-400/10 text-amber-200'
+          : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 
