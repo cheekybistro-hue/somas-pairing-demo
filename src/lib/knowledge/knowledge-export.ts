@@ -140,6 +140,70 @@ function getModuleForQuestion(
   return moduleByPhase.get(question.form_phase)
 }
 
+function inferModuleFromQuestionType(questionType: string): KnowledgeModuleRow {
+  if (questionType === 'pairing_choice') {
+    return {
+      module_code: 'FORM1',
+      module_name: 'Estrutura de Harmonização',
+      form_phase: 'form_1_pairing_structure',
+    }
+  }
+
+  if (questionType === 'national_region') {
+    return {
+      module_code: 'FORM2',
+      module_name: 'Identidade Nacional',
+      form_phase: 'form_2_national_identity',
+    }
+  }
+
+  if (questionType === 'qualitative_relationship') {
+    return {
+      module_code: 'FORM21',
+      module_name: 'Relações Qualitativas',
+      form_phase: 'form_2_1_qualitative_relationships',
+    }
+  }
+
+  if (questionType === 'international_identity') {
+    return {
+      module_code: 'FORM3',
+      module_name: 'Identidade Internacional',
+      form_phase: 'form_3_international_identity',
+    }
+  }
+
+  if (questionType === 'wine_aromatic_profile') {
+    return {
+      module_code: 'FORM4',
+      module_name: 'Wine Aromatic Intelligence',
+      form_phase: 'wine_aromatic_intelligence',
+    }
+  }
+
+  if (questionType === 'dish_intelligence') {
+    return {
+      module_code: 'FORM5',
+      module_name: 'Dish Intelligence',
+      form_phase: 'dish_intelligence',
+    }
+  }
+
+  return {
+    module_code: 'unknown',
+    module_name: undefined,
+    form_phase: undefined,
+  }
+}
+
+function resolveModuleForQuestion(
+  questionType: string,
+  question: KnowledgeQuestionRow | undefined,
+  moduleByPhase: Map<string, KnowledgeModuleRow>
+) {
+  return getModuleForQuestion(question, moduleByPhase) ?? inferModuleFromQuestionType(questionType)
+}
+
 function inferQuestionType(
   answer: KnowledgeAnswerRow,
   json: Record<string, unknown>,
@@ -331,8 +395,10 @@ function normalizeAnswerPayload(
 }
 
 function getStatus(confidenceScore: number, responseCount: number): KnowledgeExportStatus {
-  if (responseCount >= 3 && confidenceScore >= 75) return 'strong'
-  if (responseCount >= 1 && confidenceScore >= 40) return 'usable'
+  const normalizedScore = confidenceScore > 1 ? confidenceScore / 100 : confidenceScore
+
+  if (responseCount >= 3 && normalizedScore >= 0.75) return 'strong'
+  if (responseCount >= 1 && normalizedScore >= 0.4) return 'usable'
   return 'draft'
 }
 
@@ -345,7 +411,7 @@ function buildConsensusMetadata(
   const subjectLabel = getSubjectLabel(subjectCode)
 
   return {
-    formPhase: question?.form_phase,
+    formPhase: question?.form_phase ?? module?.form_phase,
     moduleCode: module?.module_code,
     moduleName: module?.module_name,
     questionText: question?.question_text,
@@ -395,17 +461,17 @@ export function buildRawKnowledgeExportAnswers(
   return answers.map((answer, index) => {
     const json = parseJsonRecord(answer.answer_json)
     const question = questionByCode.get(answer.question_code)
-    const module = getModuleForQuestion(question, moduleByPhase)
     const questionType = inferQuestionType(answer, json, question)
+    const module = resolveModuleForQuestion(questionType, question, moduleByPhase)
     const subjectCode = getSubjectCode(questionType, answer.question_code, json, question)
 
     return {
       answerId: answer.id ?? `${answer.question_code}-${index}`,
       sessionId: answer.session_id,
       expertId: answer.expert_id ?? 'unknown',
-      moduleCode: module?.module_code ?? question?.form_phase ?? 'unknown',
+      moduleCode: module?.module_code ?? 'unknown',
       moduleName: module?.module_name ?? undefined,
-      formPhase: question?.form_phase ?? undefined,
+      formPhase: question?.form_phase ?? module?.form_phase ?? undefined,
       questionCode: answer.question_code,
       questionType,
       questionText: answer.question_text ?? question?.question_text ?? undefined,
@@ -431,7 +497,7 @@ export function buildConsensusKnowledgeExportDataset(
 
   return consensus.map((item) => {
     const question = questionByCode.get(item.question_code)
-    const module = getModuleForQuestion(question, moduleByPhase)
+    const module = resolveModuleForQuestion(item.question_type, question, moduleByPhase)
     const subjectCode = getSubjectCode(item.question_type, item.question_code, {}, question)
     const responseCount = Number(item.total_votes ?? 0)
     const winningVotes = Number(item.votes ?? 0)
@@ -440,9 +506,9 @@ export function buildConsensusKnowledgeExportDataset(
 
     return {
       knowledgeId: `${item.question_code}:${item.question_type}`,
-      moduleCode: module?.module_code ?? question?.form_phase ?? 'unknown',
+      moduleCode: module?.module_code ?? 'unknown',
       moduleName: module?.module_name ?? undefined,
-      formPhase: question?.form_phase ?? undefined,
+      formPhase: question?.form_phase ?? module?.form_phase ?? undefined,
       questionCode: item.question_code,
       questionType: item.question_type,
       subjectCode,
