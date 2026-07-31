@@ -22,6 +22,16 @@ export type KnowledgeContributionReviewItem = RawKnowledgeExportAnswer & {
   searchableText: string
 }
 
+export type KnowledgeContributionModuleStats = {
+  moduleCode: string
+  moduleName?: string
+  count: number
+  ready: number
+  candidate: number
+  needsReview: number
+  testSignal: number
+}
+
 export type KnowledgeContributionReviewStats = {
   total: number
   ready: number
@@ -29,11 +39,7 @@ export type KnowledgeContributionReviewStats = {
   needsReview: number
   testSignal: number
   uniqueExperts: number
-  modules: Array<{
-    moduleCode: string
-    moduleName?: string
-    count: number
-  }>
+  modules: KnowledgeContributionModuleStats[]
 }
 
 export type KnowledgeContributionReview = {
@@ -88,6 +94,38 @@ function hasUsefulAnswer(answer: RawKnowledgeExportAnswer) {
   return Object.keys(answer.normalized ?? {}).length > 0
 }
 
+function hasAromaticProfile(answer: RawKnowledgeExportAnswer) {
+  const values = answer.answerJson.aromatic_values
+
+  return (
+    answer.questionType === 'wine_aromatic_profile' &&
+    !!values &&
+    typeof values === 'object' &&
+    Object.keys(values).length > 0
+  )
+}
+
+function hasCompleteDishIntelligence(answer: RawKnowledgeExportAnswer) {
+  const values = answer.answerJson.sensory_values
+
+  return (
+    answer.questionType === 'dish_intelligence' &&
+    typeof answer.answerJson.dish_name === 'string' &&
+    answer.answerJson.dish_name.trim().length > 0 &&
+    typeof answer.answerJson.cooking_method === 'string' &&
+    answer.answerJson.cooking_method.trim().length > 0 &&
+    !!values &&
+    typeof values === 'object' &&
+    Object.keys(values).length > 0
+  )
+}
+
+function requiresReasonForQuality(answer: RawKnowledgeExportAnswer) {
+  return ['pairing_choice', 'international_identity'].includes(
+    answer.questionType
+  )
+}
+
 function getSignals(answer: RawKnowledgeExportAnswer) {
   const signals: ContributionQualitySignal[] = []
   const confidence = Number(answer.confidence ?? 0)
@@ -117,12 +155,7 @@ function getSignals(answer: RawKnowledgeExportAnswer) {
     })
   }
 
-  if (
-    ['pairing_choice', 'national_region', 'international_identity'].includes(
-      answer.questionType
-    ) &&
-    reason.length === 0
-  ) {
+  if (requiresReasonForQuality(answer) && reason.length === 0) {
     signals.push({
       code: 'missing_reason',
       label: 'Sem justificação textual',
@@ -149,13 +182,26 @@ function getStatus(
     return 'needs_review'
   }
 
+  const confidence = Number(answer.confidence ?? 0)
   const reason = getReason(answer)
 
-  if (reason.length >= 10 || answer.questionType === 'wine_aromatic_profile') {
+  if (answer.questionType === 'national_region') {
+    return confidence >= 0.5 && hasUsefulAnswer(answer) ? 'ready' : 'candidate'
+  }
+
+  if (hasAromaticProfile(answer)) {
     return 'ready'
   }
 
-  if (answer.questionType === 'dish_intelligence') {
+  if (hasCompleteDishIntelligence(answer)) {
+    return 'ready'
+  }
+
+  if (answer.questionType === 'qualitative_relationship') {
+    return 'candidate'
+  }
+
+  if (reason.length >= 10) {
     return 'ready'
   }
 
@@ -182,17 +228,27 @@ function buildSearchableText(answer: RawKnowledgeExportAnswer) {
 }
 
 function buildStats(items: KnowledgeContributionReviewItem[]) {
-  const moduleMap = new Map<string, { moduleName?: string; count: number }>()
+  const moduleMap = new Map<string, KnowledgeContributionModuleStats>()
 
   items.forEach((item) => {
     const previous = moduleMap.get(item.moduleCode) ?? {
+      moduleCode: item.moduleCode,
       moduleName: item.moduleName,
       count: 0,
+      ready: 0,
+      candidate: 0,
+      needsReview: 0,
+      testSignal: 0,
     }
 
     moduleMap.set(item.moduleCode, {
+      ...previous,
       moduleName: previous.moduleName ?? item.moduleName,
       count: previous.count + 1,
+      ready: previous.ready + (item.status === 'ready' ? 1 : 0),
+      candidate: previous.candidate + (item.status === 'candidate' ? 1 : 0),
+      needsReview: previous.needsReview + (item.status === 'needs_review' ? 1 : 0),
+      testSignal: previous.testSignal + (item.status === 'test_signal' ? 1 : 0),
     })
   })
 
@@ -203,13 +259,9 @@ function buildStats(items: KnowledgeContributionReviewItem[]) {
     needsReview: items.filter((item) => item.status === 'needs_review').length,
     testSignal: items.filter((item) => item.status === 'test_signal').length,
     uniqueExperts: new Set(items.map((item) => item.expertId)).size,
-    modules: Array.from(moduleMap.entries())
-      .map(([moduleCode, value]) => ({
-        moduleCode,
-        moduleName: value.moduleName,
-        count: value.count,
-      }))
-      .sort((a, b) => a.moduleCode.localeCompare(b.moduleCode)),
+    modules: Array.from(moduleMap.values()).sort((a, b) =>
+      a.moduleCode.localeCompare(b.moduleCode)
+    ),
   }
 }
 
