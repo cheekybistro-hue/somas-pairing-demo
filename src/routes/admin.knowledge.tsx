@@ -3,8 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { loadConsensusSnapshot } from '../lib/knowledge/consensus-persistence'
 import {
   buildKnowledgeExportBundle,
-  buildConsensusKnowledgeExportDataset,
-  buildEmbeddingKnowledgeExportDataset,
   toJsonDownload,
   toJsonlDownload,
 } from '../lib/knowledge/knowledge-export'
@@ -264,35 +262,42 @@ async function exportRawAnswersJson() {
   }
 }
 
-function exportDatasetJson() {
-  const dataset = buildConsensusKnowledgeExportDataset(
-    filteredConsensus,
-    [],
-    []
-  )
+async function exportDatasetJson() {
+  try {
+    setExporting(true)
+    setError(null)
 
-  downloadTextFile({
-    filename: 'somas-consensus-dataset.json',
-    content: toJsonDownload(dataset),
-    type: 'application/json',
-  })
+    const bundle = await buildKnowledgeExportBundle()
+
+    downloadTextFile({
+      filename: 'somas-consensus-dataset.json',
+      content: toJsonDownload(bundle.consensusDataset),
+      type: 'application/json',
+    })
+  } catch (err: any) {
+    setError(err.message ?? 'Erro ao exportar dataset consensual')
+  } finally {
+    setExporting(false)
+  }
 }
 
-function exportEmbeddingJsonl() {
-  const dataset = buildConsensusKnowledgeExportDataset(
-    filteredConsensus,
-    [],
-    []
-  )
+async function exportEmbeddingJsonl() {
+  try {
+    setExporting(true)
+    setError(null)
 
-  const documents =
-    buildEmbeddingKnowledgeExportDataset(dataset)
+    const bundle = await buildKnowledgeExportBundle()
 
-  downloadTextFile({
-    filename: 'somas-embedding-dataset.jsonl',
-    content: toJsonlDownload(documents),
-    type: 'application/x-ndjson;charset=utf-8;',
-  })
+    downloadTextFile({
+      filename: 'somas-embedding-dataset.jsonl',
+      content: toJsonlDownload(bundle.embeddingDataset),
+      type: 'application/x-ndjson;charset=utf-8;',
+    })
+  } catch (err: any) {
+    setError(err.message ?? 'Erro ao exportar documentos JSONL')
+  } finally {
+    setExporting(false)
+  }
 }
 
   return (
