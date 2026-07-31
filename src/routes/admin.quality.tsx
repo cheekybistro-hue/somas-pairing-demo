@@ -106,7 +106,7 @@ function AdminKnowledgeQualityPage() {
         <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
           <div>
             <p className="text-sm uppercase tracking-widest text-amber-400 mb-2">
-              SomAS Admin · PR14
+              SomAS Admin · PR14.1
             </p>
 
             <h1 className="text-4xl font-light">
@@ -116,8 +116,8 @@ function AdminKnowledgeQualityPage() {
             <p className="text-zinc-400 mt-3 max-w-3xl">
               Visão operacional das respostas introduzidas por sommeliers,
               chefs e outros especialistas. O objetivo é ver o conhecimento a
-              entrar no SomAS, identificar sinais de teste e perceber que dados
-              já podem alimentar consenso, exportação e RAG.
+              entrar no SomAS, identificar sinais de teste, acompanhar a distribuição por módulo
+              e perceber que dados já podem alimentar consenso, exportação e RAG.
             </p>
           </div>
 
@@ -148,7 +148,7 @@ function AdminKnowledgeQualityPage() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
           <StatCard
             label="Contributos"
             value={stats?.total ?? 0}
@@ -174,9 +174,15 @@ function AdminKnowledgeQualityPage() {
           />
 
           <StatCard
+            label="Sinais de teste"
+            value={stats?.testSignal ?? 0}
+            helper="Possíveis respostas de teste"
+          />
+
+          <StatCard
             label="A rever"
-            value={(stats?.needsReview ?? 0) + (stats?.testSignal ?? 0)}
-            helper="Baixa qualidade/teste"
+            value={stats?.needsReview ?? 0}
+            helper="Baixa confiança ou vazias"
           />
         </section>
 
@@ -228,6 +234,8 @@ function AdminKnowledgeQualityPage() {
           </p>
         </section>
 
+        <ModuleDistribution modules={modules} />
+
         <section className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-6">
           <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl overflow-hidden">
             {loading ? (
@@ -269,6 +277,78 @@ function AdminKnowledgeQualityPage() {
           <ContributionDetail item={selectedItem} />
         </section>
       </div>
+    </div>
+  )
+}
+
+
+function ModuleDistribution({
+  modules,
+}: {
+  modules: KnowledgeContributionReview['stats']['modules']
+}) {
+  if (modules.length === 0) {
+    return null
+  }
+
+  return (
+    <section className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-6">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-zinc-500 mb-1">
+            Distribuição por módulo
+          </p>
+          <h2 className="text-xl font-light">
+            Onde o conhecimento está a entrar
+          </h2>
+        </div>
+
+        <p className="text-sm text-zinc-500 max-w-2xl">
+          Esta visão ajuda a perceber rapidamente se os contributos estão
+          concentrados em poucos formulários ou se a recolha já cobre várias
+          camadas do SomAS.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+        {modules.map((module) => (
+          <div
+            key={module.moduleCode}
+            className="bg-zinc-950 border border-zinc-700 rounded-xl p-4"
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="font-mono text-amber-300">
+                  {module.moduleCode}
+                </div>
+                <div className="text-xs text-zinc-500 mt-1">
+                  {module.moduleName ?? 'Sem nome'}
+                </div>
+              </div>
+
+              <div className="text-2xl font-semibold text-zinc-100">
+                {module.count}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <MiniStatus label="Prontos" value={module.ready} />
+              <MiniStatus label="Candidatos" value={module.candidate} />
+              <MiniStatus label="Teste" value={module.testSignal} />
+              <MiniStatus label="Rever" value={module.needsReview} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function MiniStatus({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
+      <div className="text-zinc-500">{label}</div>
+      <div className="text-zinc-200 font-medium">{value}</div>
     </div>
   )
 }
