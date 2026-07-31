@@ -9,7 +9,7 @@ export const Route = createFileRoute('/admin')({
   component: AdminHubPage,
 })
 
- function AdminHubPage() {
+function AdminHubPage() {
   const isChildAdminRoute = useRouterState({
     select: (state) => state.location.pathname !== '/admin',
   })
@@ -18,13 +18,20 @@ export const Route = createFileRoute('/admin')({
     return <Outlet />
   }
 
-   const cards = [
+  const cards = [
     {
       title: 'Knowledge Dashboard',
       description:
         'Consensos gerados a partir das respostas dos especialistas.',
       href: '/admin/knowledge',
       label: 'Abrir conhecimento',
+    },
+    {
+      title: 'Knowledge Quality',
+      description:
+        'Ver os dados introduzidos por sommeliers, chefs e especialistas, com sinais automáticos de qualidade.',
+      href: '/admin/quality',
+      label: 'Rever contributos',
     },
     {
       title: 'Knowledge Gaps',
@@ -76,11 +83,11 @@ export const Route = createFileRoute('/admin')({
       label: 'Abrir assistente',
     },
     {
-  title: 'Knowledge Operations',
-  description:
-    'Gerar Knowledge Passports para alimentar o SomAS Core Decision Engine.',
-  href: '/admin/operations',
-  label: 'Abrir operações',
+      title: 'Knowledge Operations',
+      description:
+        'Gerar Knowledge Passports para alimentar o SomAS Core Decision Engine.',
+      href: '/admin/operations',
+      label: 'Abrir operações',
     },
   ]
 
@@ -92,9 +99,7 @@ export const Route = createFileRoute('/admin')({
             SomAS Admin
           </p>
 
-          <h1 className="text-4xl font-light">
-            Admin Hub
-          </h1>
+          <h1 className="text-4xl font-light">Admin Hub</h1>
 
           <p className="text-zinc-400 mt-3 max-w-3xl">
             Centro de controlo da plataforma SomAS. Aqui pode acompanhar
@@ -112,8 +117,8 @@ export const Route = createFileRoute('/admin')({
 
           <StatCard
             label="Quality"
-            value="Gaps"
-            helper="Cobertura e confiança"
+            value="Review"
+            helper="Contributos reais"
           />
 
           <StatCard
@@ -152,16 +157,14 @@ export const Route = createFileRoute('/admin')({
         </section>
 
         <section className="bg-zinc-800/40 border border-zinc-700 rounded-2xl p-6">
-          <h2 className="text-2xl font-light mb-3">
-            Como ler esta área
-          </h2>
+          <h2 className="text-2xl font-light mb-3">Como ler esta área</h2>
 
           <p className="text-zinc-400 leading-relaxed">
             O SomAS Admin acompanha a transformação de respostas individuais
             em conhecimento coletivo. Primeiro recolhemos contributos dos
-            especialistas, depois calculamos consensos, identificamos gaps,
-            preparamos datasets, geramos embeddings e finalmente usamos RAG
-            para criar respostas explicáveis.
+            especialistas, depois revemos qualidade, calculamos consensos,
+            identificamos gaps, preparamos datasets, geramos embeddings e
+            finalmente usamos RAG para criar respostas explicáveis.
           </p>
         </section>
       </div>
@@ -184,13 +187,9 @@ function StatCard({
         {label}
       </div>
 
-      <div className="text-2xl font-semibold">
-        {value}
-      </div>
+      <div className="text-2xl font-semibold">{value}</div>
 
-      <div className="text-sm text-zinc-500 mt-1">
-        {helper}
-      </div>
+      <div className="text-sm text-zinc-500 mt-1">{helper}</div>
     </div>
   )
 }
