@@ -34,6 +34,13 @@ function AdminHubPage() {
       label: 'Rever contributos',
     },
     {
+      title: 'Contribution Targets',
+      description:
+        'Plano de recolha: que perguntas ainda precisam de mais respostas e que especialistas devem ser chamados.',
+      href: '/admin/targets',
+      label: 'Ver plano de recolha',
+    },
+    {
       title: 'Knowledge Gaps',
       description:
         'Áreas com baixa confiança, pouca cobertura ou divergência.',
@@ -103,12 +110,12 @@ function AdminHubPage() {
 
           <p className="text-zinc-400 mt-3 max-w-3xl">
             Centro de controlo da plataforma SomAS. Aqui pode acompanhar
-            conhecimento, especialistas, consenso, gaps, embeddings e os
+            conhecimento, qualidade, plano de recolha, especialistas, consenso, gaps, embeddings e os
             primeiros protótipos RAG.
           </p>
         </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <StatCard
             label="Knowledge"
             value="Consensus"
@@ -119,6 +126,12 @@ function AdminHubPage() {
             label="Quality"
             value="Review"
             helper="Contributos reais"
+          />
+
+          <StatCard
+            label="Targets"
+            value="Plan"
+            helper="Recolha guiada"
           />
 
           <StatCard
