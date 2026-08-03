@@ -9,6 +9,13 @@ export const Route = createFileRoute('/admin')({
   component: AdminControlCenterPage,
 })
 
+type QuickLink = {
+  area: string
+  title: string
+  description: string
+  href: string
+}
+
 type AdminAreaCard = {
   title: string
   description: string
@@ -26,6 +33,45 @@ type AdminSection = {
   cards: AdminAreaCard[]
 }
 
+const quickLinks: QuickLink[] = [
+  {
+    area: 'Knowledge',
+    title: 'Consensus',
+    description: 'Base consolidada',
+    href: '/admin/knowledge',
+  },
+  {
+    area: 'Quality',
+    title: 'Review',
+    description: 'Contributos reais',
+    href: '/admin/quality',
+  },
+  {
+    area: 'Targets',
+    title: 'Plan',
+    description: 'Recolha guiada',
+    href: '/admin/targets',
+  },
+  {
+    area: 'Sessions',
+    title: 'PR16',
+    description: 'Quem chamar',
+    href: '/admin/sessions',
+  },
+  {
+    area: 'Experts',
+    title: 'Network',
+    description: 'Especialistas ativos',
+    href: '/admin/experts',
+  },
+  {
+    area: 'AI',
+    title: 'RAG',
+    description: 'Pesquisa e assistente',
+    href: '/dev/rag',
+  },
+]
+
 const adminSections: AdminSection[] = [
   {
     title: '1. Operação de recolha',
@@ -40,9 +86,9 @@ const adminSections: AdminSection[] = [
         label: 'Ver plano de recolha',
         stage: 'O que falta?',
         useWhen:
-          'Usar antes de convidar especialistas, para decidir que módulos e perguntas devem ser priorizados.',
+          'Antes de convidar especialistas, para decidir que módulos e perguntas devem ser priorizados.',
         output:
-          'Lista de alvos críticos, alta prioridade, respostas em falta e cobertura por módulo.',
+          'Alvos críticos, alta prioridade, respostas em falta e cobertura por módulo.',
         status: 'PR15.1',
       },
       {
@@ -53,7 +99,7 @@ const adminSections: AdminSection[] = [
         label: 'Preparar sessões',
         stage: 'Quem chamar?',
         useWhen:
-          'Usar para preparar uma sessão real de recolha com objetivos claros e perguntas sugeridas.',
+          'Para preparar uma sessão real de recolha com objetivos claros e perguntas sugeridas.',
         output:
           'Sessões recomendadas, participantes, duração, módulos, alvos e resultado esperado.',
         status: 'PR16',
@@ -73,7 +119,7 @@ const adminSections: AdminSection[] = [
         label: 'Rever contributos',
         stage: 'O que entrou?',
         useWhen:
-          'Usar depois de uma sessão de recolha para verificar dados recebidos, sinais de teste e respostas candidatas.',
+          'Depois de uma sessão de recolha, para verificar dados recebidos, sinais de teste e respostas candidatas.',
         output:
           'Contributos prontos, candidatos, sinais de teste, respostas a rever e distribuição por módulo.',
         status: 'PR14.1',
@@ -86,9 +132,8 @@ const adminSections: AdminSection[] = [
         label: 'Ver gaps',
         stage: 'Onde há fragilidade?',
         useWhen:
-          'Usar para perceber onde o conhecimento ainda está fraco antes de exportar ou usar em RAG.',
-        output:
-          'Gaps de cobertura, confiança e consistência.',
+          'Para perceber onde o conhecimento ainda está fraco antes de exportar ou usar em RAG.',
+        output: 'Gaps de cobertura, confiança e consistência.',
       },
       {
         title: 'Expert Insights',
@@ -98,9 +143,8 @@ const adminSections: AdminSection[] = [
         label: 'Ver especialistas',
         stage: 'Quem contribuiu?',
         useWhen:
-          'Usar para acompanhar a rede de especialistas e perceber que perfis estão representados.',
-        output:
-          'Lista e visão operacional dos especialistas.',
+          'Para acompanhar a rede de especialistas e perceber que perfis estão representados.',
+        output: 'Lista e visão operacional dos especialistas.',
       },
     ],
   },
@@ -117,7 +161,7 @@ const adminSections: AdminSection[] = [
         label: 'Abrir conhecimento',
         stage: 'O que já podemos usar?',
         useWhen:
-          'Usar quando houver massa crítica e for preciso exportar dados para dataset, embeddings ou RAG.',
+          'Quando houver massa crítica e for preciso exportar dados para dataset, embeddings ou RAG.',
         output:
           'Consensus dataset, raw answers, embeddings JSONL e bundle completo SomAS.',
         status: 'PR13.1',
@@ -130,9 +174,8 @@ const adminSections: AdminSection[] = [
         label: 'Abrir operações',
         stage: 'Como alimentar o motor?',
         useWhen:
-          'Usar para operações de preparação e passagem de conhecimento para a camada core do SomAS.',
-        output:
-          'Knowledge passports e operações de preparação.',
+          'Para operações de preparação e passagem de conhecimento para a camada core do SomAS.',
+        output: 'Knowledge passports e operações de preparação.',
       },
     ],
   },
@@ -149,9 +192,8 @@ const adminSections: AdminSection[] = [
         label: 'Abrir consensus lab',
         stage: 'Como o consenso é calculado?',
         useWhen:
-          'Usar em modo técnico para validar regras de consenso e resultados calculados.',
-        output:
-          'Snapshots e validação técnica de consenso.',
+          'Em modo técnico, para validar regras de consenso e resultados calculados.',
+        output: 'Snapshots e validação técnica de consenso.',
       },
       {
         title: 'Embedding Pipeline',
@@ -161,9 +203,8 @@ const adminSections: AdminSection[] = [
         label: 'Abrir embeddings',
         stage: 'Como indexar?',
         useWhen:
-          'Usar quando o dataset estiver pronto para geração ou atualização de embeddings.',
-        output:
-          'Pipeline e estado de embeddings.',
+          'Quando o dataset estiver pronto para geração ou atualização de embeddings.',
+        output: 'Pipeline e estado de embeddings.',
       },
       {
         title: 'RAG Documents',
@@ -172,10 +213,8 @@ const adminSections: AdminSection[] = [
         href: '/dev/rag',
         label: 'Ver documentos RAG',
         stage: 'Que textos alimentam a IA?',
-        useWhen:
-          'Usar para auditar os documentos antes de serem indexados.',
-        output:
-          'Documentos de conhecimento legíveis para RAG.',
+        useWhen: 'Para auditar os documentos antes de serem indexados.',
+        output: 'Documentos de conhecimento legíveis para RAG.',
       },
       {
         title: 'Semantic Search',
@@ -185,9 +224,8 @@ const adminSections: AdminSection[] = [
         label: 'Abrir pesquisa',
         stage: 'Como encontrar conhecimento?',
         useWhen:
-          'Usar para testar recuperação semântica e qualidade dos embeddings.',
-        output:
-          'Resultados de pesquisa semântica.',
+          'Para testar recuperação semântica e qualidade dos embeddings.',
+        output: 'Resultados de pesquisa semântica.',
       },
       {
         title: 'Knowledge Assistant',
@@ -197,9 +235,8 @@ const adminSections: AdminSection[] = [
         label: 'Abrir assistente',
         stage: 'Como responder com conhecimento?',
         useWhen:
-          'Usar para testar respostas explicáveis baseadas no dataset SomAS.',
-        output:
-          'Respostas assistidas por RAG.',
+          'Para testar respostas explicáveis baseadas no dataset SomAS.',
+        output: 'Respostas assistidas por RAG.',
       },
     ],
   },
@@ -277,6 +314,28 @@ function AdminControlCenterPage() {
             aceder a esta área se tiverem permissões de administração.
           </p>
         </header>
+
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+          {quickLinks.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className="group rounded-2xl border border-zinc-700 bg-zinc-800/50 p-5 hover:border-amber-400/70 hover:bg-zinc-800 transition"
+            >
+              <div className="text-xs uppercase tracking-widest text-zinc-500 group-hover:text-amber-400">
+                {item.area}
+              </div>
+
+              <div className="mt-3 text-xl font-semibold group-hover:text-amber-300">
+                {item.title}
+              </div>
+
+              <div className="mt-2 text-sm text-zinc-500">
+                {item.description}
+              </div>
+            </Link>
+          ))}
+        </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {workflow.map((item) => (
