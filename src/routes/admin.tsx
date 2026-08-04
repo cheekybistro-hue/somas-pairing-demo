@@ -5,6 +5,8 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 
+import { AdminAccessGate } from '@/lib/auth/admin-access'
+
 export const Route = createFileRoute('/admin')({
   component: AdminControlCenterPage,
 })
@@ -283,11 +285,16 @@ function AdminControlCenterPage() {
   })
 
   if (isChildAdminRoute) {
-    return <Outlet />
+    return (
+      <AdminAccessGate>
+        <Outlet />
+      </AdminAccessGate>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
+    <AdminAccessGate>
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <header className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -425,7 +432,8 @@ function AdminControlCenterPage() {
           </section>
         ))}
       </div>
-    </div>
+      </div>
+    </AdminAccessGate>
   )
 }
 
