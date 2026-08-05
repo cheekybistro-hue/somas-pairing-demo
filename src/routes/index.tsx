@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Wine, Search, Grape, MapPin, Palette, Award, Globe2, Brain } from 'lucide-react'
 
@@ -47,9 +47,42 @@ function Home() {
   const [recommendations, setRecommendations] = useState<WineRecommendation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadSession() {
+      const { data } = await supabase.auth.getSession()
+
+      if (!isMounted) return
+
+      setIsAuthenticated(Boolean(data.session))
+      setCheckingSession(false)
+    }
+
+    void loadSession()
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(Boolean(session))
+      setCheckingSession(false)
+    })
+
+    return () => {
+      isMounted = false
+      data.subscription.unsubscribe()
+    }
+  }, [])
 
   async function fetchRecommendations() {
     if (!selectedArchetype) return
+
+    if (!isAuthenticated) {
+      setError('Inicie sessão para usar o SomAS Pairing Engine.')
+      setRecommendations([])
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -61,7 +94,7 @@ function Home() {
     })
 
     if (rpcError) {
-      setError(rpcError.message)
+      setError('Não foi possível carregar recomendações neste momento. Tente novamente dentro de alguns segundos.')
     } else {
       setRecommendations(data ?? [])
     }
@@ -108,15 +141,35 @@ function Home() {
 
               <button
                 onClick={fetchRecommendations}
-                disabled={!selectedArchetype || loading}
+                disabled={!selectedArchetype || loading || checkingSession}
                 className="bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 font-semibold px-8 py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed shadow-lg shadow-amber-500/20"
               >
                 <Search className="w-5 h-5" />
-                {loading ? 'A procurar…' : 'Recomendar'}
+                {checkingSession ? 'A verificar sessão…' : loading ? 'A procurar…' : 'Recomendar'}
               </button>
             </div>
           </div>
         </div>
+
+        {!checkingSession && !isAuthenticated && (
+          <div className="max-w-3xl mx-auto mb-8">
+            <div className="bg-amber-950/30 border border-amber-700/40 rounded-xl p-5 text-amber-100 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="font-medium text-amber-200">Acesso reservado a utilizadores autenticados</p>
+                <p className="mt-1 text-amber-100/80">
+                  Inicie sessão para usar o SomAS Pairing Engine e consultar recomendações.
+                </p>
+              </div>
+
+              <Link
+                to="/knowledge"
+                className="inline-flex items-center justify-center rounded-lg bg-amber-500 px-4 py-2 font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
+              >
+                Entrar
+              </Link>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="max-w-3xl mx-auto mb-8">
