@@ -16,13 +16,14 @@ export function KnowledgeStoryCard({
   somasImpact,
 }: Props) {
   const [open, setOpen] = useState(false)
+  const visibleGuidance = open ? howToAnswer : howToAnswer.slice(0, 2)
 
   return (
     <section className="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-6 mb-8">
       <div className="flex items-start justify-between gap-6">
         <div>
           <p className="text-xs uppercase tracking-widest text-amber-400 mb-2">
-            Porque está a responder?
+            Propósito do formulário
           </p>
 
           <h2 className="text-2xl font-semibold text-zinc-100">
@@ -37,7 +38,7 @@ export function KnowledgeStoryCard({
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="px-4 py-2 rounded-xl border border-amber-400 text-amber-400 hover:bg-amber-400/10 text-sm"
+          className="px-4 py-2 rounded-xl border border-amber-400 text-amber-400 hover:bg-amber-400/10 text-sm shrink-0"
         >
           {open ? 'Mostrar menos' : 'Saber mais'}
         </button>
@@ -47,33 +48,39 @@ export function KnowledgeStoryCard({
         {whyItMatters}
       </p>
 
-      {open && (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
-            <h3 className="font-semibold text-zinc-100 mb-3">
-              Como responder
-            </h3>
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
+          <h3 className="font-semibold text-zinc-100 mb-3">
+            Como preencher
+          </h3>
 
-            <ul className="space-y-2 text-zinc-400 text-sm">
-              {howToAnswer.map((item) => (
-                <li key={item}>
-                  • {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="space-y-2 text-zinc-400 text-sm">
+            {visibleGuidance.map((item) => (
+              <li key={item}>
+                • {item}
+              </li>
+            ))}
+          </ul>
 
-          <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
-            <h3 className="font-semibold text-zinc-100 mb-3">
-              Como isto alimenta o SomAS
-            </h3>
-
-            <p className="text-zinc-400 text-sm leading-relaxed">
-              {somasImpact}
+          {!open && howToAnswer.length > visibleGuidance.length && (
+            <p className="text-xs text-amber-400 mt-3">
+              Abra “Saber mais” para ver a lógica completa de preenchimento.
             </p>
-          </div>
+          )}
         </div>
-      )}
+
+        <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
+          <h3 className="font-semibold text-zinc-100 mb-3">
+            Porque fazemos assim
+          </h3>
+
+          <p className="text-zinc-400 text-sm leading-relaxed">
+            {open
+              ? somasImpact
+              : 'Cada resposta é guardada de forma estruturada para gerar consenso entre especialistas e alimentar recomendações explicáveis.'}
+          </p>
+        </div>
+      </div>
     </section>
   )
 }
