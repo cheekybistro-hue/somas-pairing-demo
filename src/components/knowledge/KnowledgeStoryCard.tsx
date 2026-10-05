@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 
 type Props = {
   title: string
@@ -6,6 +7,39 @@ type Props = {
   whyItMatters: string
   howToAnswer: string[]
   somasImpact: string
+}
+
+function GuidanceToggle({
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  const Icon = open ? ChevronDown : ChevronRight
+
+  return (
+    <div className="border border-zinc-700 rounded-xl bg-zinc-950/30 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-900/60 transition-colors"
+      >
+        <span className="font-semibold text-zinc-100">{title}</span>
+        <Icon className="w-5 h-5 text-amber-400 shrink-0" />
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 text-zinc-400 text-sm leading-relaxed">
+          {children}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function KnowledgeStoryCard({
@@ -16,7 +50,8 @@ export function KnowledgeStoryCard({
   somasImpact,
 }: Props) {
   const [open, setOpen] = useState(false)
-  const visibleGuidance = open ? howToAnswer : howToAnswer.slice(0, 2)
+  const [answerOpen, setAnswerOpen] = useState(false)
+  const [whyOpen, setWhyOpen] = useState(false)
 
   return (
     <section className="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-6 mb-8">
@@ -49,37 +84,35 @@ export function KnowledgeStoryCard({
       </p>
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
-          <h3 className="font-semibold text-zinc-100 mb-3">
-            Como preencher
-          </h3>
-
-          <ul className="space-y-2 text-zinc-400 text-sm">
-            {visibleGuidance.map((item) => (
-              <li key={item}>
-                • {item}
-              </li>
+        <GuidanceToggle
+          title="Como preencher"
+          open={answerOpen}
+          onToggle={() => setAnswerOpen((value) => !value)}
+        >
+          <ul className="space-y-2">
+            {howToAnswer.map((item) => (
+              <li key={item}>• {item}</li>
             ))}
           </ul>
 
-          {!open && howToAnswer.length > visibleGuidance.length && (
+          {!open && (
             <p className="text-xs text-amber-400 mt-3">
               Abra “Saber mais” para ver a lógica completa de preenchimento.
             </p>
           )}
-        </div>
+        </GuidanceToggle>
 
-        <div className="bg-zinc-950/40 border border-zinc-700 rounded-xl p-5">
-          <h3 className="font-semibold text-zinc-100 mb-3">
-            Porque fazemos assim
-          </h3>
-
-          <p className="text-zinc-400 text-sm leading-relaxed">
+        <GuidanceToggle
+          title="Porque fazemos assim"
+          open={whyOpen}
+          onToggle={() => setWhyOpen((value) => !value)}
+        >
+          <p>
             {open
               ? somasImpact
               : 'Cada resposta é guardada de forma estruturada para gerar consenso entre especialistas e alimentar recomendações explicáveis.'}
           </p>
-        </div>
+        </GuidanceToggle>
       </div>
     </section>
   )
